@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TuVenta — Compra y vende en Cuba</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --border: #e8e6df;
+  --accent: #e63946;
+  --accent2: #2d6a4f;
+  --accent3: #f4a261;
+  --text: #1a1a1a;
+  --text2: #666660;
+  --text3: #aaa9a0;
+  --radius: 12px;
+  --font: 'Figtree', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* NAV */
+.nav {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  padding: 0 16px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.nav-logo { font-weight: 800; font-size: 1.3rem; color: var(--accent); letter-spacing: -0.5px; white-space: nowrap; }
+.nav-logo span { color: var(--text2); font-weight: 400; }
+.nav-search {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 100px; padding: 8px 16px; font-family: var(--font);
+  font-size: 0.88rem; outline: none; color: var(--text); max-width: 400px;
+}
+.nav-search:focus { border-color: var(--accent); }
+.btn-publicar {
+  background: var(--accent); color: white; border: none; border-radius: 100px;
+  padding: 9px 18px; font-family: var(--font); font-weight: 700; font-size: 0.82rem;
+  cursor: pointer; white-space: nowrap; transition: opacity 0.2s;
+}
+.btn-publicar:hover { opacity: 0.88; }
+
+/* HERO BANNER */
+.hero-banner {
+  background: var(--accent); color: white;
+  padding: 20px 16px; text-align: center;
+}
+.hero-banner h1 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+.hero-banner p { font-size: 0.82rem; opacity: 0.88; }
+
+/* CATEGORÍAS */
+.cats-wrap { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 16px; overflow-x: auto; }
+.cats { display: flex; gap: 8px; width: max-content; }
+.cat-pill {
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 100px; padding: 6px 14px; font-size: 0.8rem; font-weight: 600;
+  cursor: pointer; white-space: nowrap; transition: all 0.2s; color: var(--text2);
+  display: flex; align-items: center; gap: 5px;
+}
+.cat-pill:hover, .cat-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* CONTENIDO PRINCIPAL */
+.main { max-width: 900px; margin: 0 auto; padding: 16px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.section-header h2 { font-size: 1rem; font-weight: 700; }
+.ver-todo { font-size: 0.8rem; color: var(--accent); font-weight: 600; cursor: pointer; }
+
+/* GRID ANUNCIOS */
+.anuncios-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 24px; }
+.anuncio-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+}
+.anuncio-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.anuncio-img {
+  width: 100%; aspect-ratio: 1; background: var(--surface2);
+  display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
+  position: relative; overflow: hidden;
+}
+.anuncio-img img { width: 100%; height: 100%; object-fit: cover; }
+.badge-nuevo { position: absolute; top: 6px; left: 6px; background: var(--accent2); color: white; font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 100px; }
+.badge-urgente { position: absolute; top: 6px; left: 6px; background: var(--accent); color: white; font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 100px; }
+.anuncio-body { padding: 10px; }
+.anuncio-precio { font-weight: 800; font-size: 1rem; color: var(--text); margin-bottom: 2px; }
+.anuncio-precio span { font-size: 0.7rem; font-weight: 500; color: var(--text2); }
+.anuncio-titulo { font-size: 0.82rem; color: var(--text2); margin-bottom: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.anuncio-meta { font-size: 0.72rem; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+.anuncio-verificado { color: var(--accent2); font-size: 0.7rem; font-weight: 600; }
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface);
+  border-top: 1px solid var(--border); display: flex; z-index: 100;
+}
+.bnav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 8px 4px; cursor: pointer;
+  color: var(--text3); font-size: 0.58rem; gap: 3px; border: none; background: none;
+  font-family: var(--font); font-weight: 600; transition: color 0.2s;
+}
+.bnav-item.active { color: var(--accent); }
+.bnav-item svg { width: 22px; height: 22px; }
+.bnav-publicar {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 6px 4px; cursor: pointer; border: none; background: none;
+  font-family: var(--font);
+}
+.bnav-publicar-btn {
+  background: var(--accent); color: white; border-radius: 50%;
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px rgba(230,57,70,0.35);
+}
+.bnav-publicar-btn svg { width: 22px; height: 22px; }
+
+/* MODAL PUBLICAR */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 24px 16px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 20px; }
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.6px; }
+.form-input { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; font-family: var(--font); font-size: 16px; outline: none; color: var(--text); transition: border-color 0.2s; }
+.form-input:focus { border-color: var(--accent); }
+.form-select { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; font-family: var(--font); font-size: 16px; outline: none; color: var(--text); appearance: none; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.foto-upload { border: 2px dashed var(--border); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: border-color 0.2s; }
+.foto-upload:hover { border-color: var(--accent); }
+.foto-upload-icon { font-size: 2rem; margin-bottom: 8px; }
+.foto-upload-text { font-size: 0.82rem; color: var(--text2); }
+.btn-submit { width: 100%; background: var(--accent); color: white; border: none; border-radius: 10px; padding: 14px; font-family: var(--font); font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 8px; transition: opacity 0.2s; }
+.btn-submit:hover { opacity: 0.88; }
+.btn-cancel { width: 100%; background: transparent; color: var(--text2); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px; font-family: var(--font); font-weight: 600; font-size: 0.9rem; cursor: pointer; margin-top: 8px; }
+
+/* MODAL DETALLE */
+.detalle-img { width: 100%; aspect-ratio: 4/3; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 5rem; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.detalle-precio { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
+.detalle-titulo { font-size: 1rem; color: var(--text2); margin-bottom: 12px; line-height: 1.4; }
+.detalle-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.detalle-tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 4px 10px; font-size: 0.75rem; font-weight: 600; color: var(--text2); }
+.detalle-vendedor { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+.vendedor-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1rem; flex-shrink: 0; }
+.vendedor-name { font-weight: 700; font-size: 0.95rem; }
+.vendedor-meta { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+.vendedor-verificado { color: var(--accent2); font-weight: 700; }
+.btn-whatsapp { width: 100%; background: #25D366; color: white; border: none; border-radius: 10px; padding: 14px; font-family: var(--font); font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
+.btn-whatsapp:hover { opacity: 0.9; }
+.detalle-desc { font-size: 0.9rem; color: var(--text2); line-height: 1.6; margin-bottom: 16px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: white; padding: 10px 20px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; opacity: 0; transition: all 0.3s; z-index: 300; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.content-pad { padding-bottom: 72px; }
+
+/* AUTH */
+.auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:none;align-items:center;justify-content:center;}
+.auth-overlay.open{display:flex;}
+.auth-box{background:var(--surface);border-radius:20px;padding:28px 20px;width:calc(100% - 32px);max-width:380px;}
+.auth-logo{font-weight:800;font-size:1.4rem;color:var(--accent);text-align:center;margin-bottom:4px;}
+.auth-sub{text-align:center;color:var(--text2);font-size:0.82rem;margin-bottom:20px;}
+.auth-tabs{display:flex;background:var(--surface2);border-radius:10px;padding:3px;margin-bottom:20px;}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;color:var(--text2);border:none;background:none;font-family:var(--font);transition:all 0.2s;}
+.auth-tab.active{background:var(--surface);color:var(--text);}
+.auth-error{background:#fff0f0;border:1px solid #ffcccc;color:var(--accent);border-radius:8px;padding:8px 12px;font-size:0.8rem;margin-bottom:12px;display:none;}
+.nav-user{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:white;font-weight:700;font-size:0.8rem;display:flex;align-items:center;justify-content:center;}
+.mis-anuncios-list{display:flex;flex-direction:column;gap:10px;}
+.mis-anuncio-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.mis-anuncio-info{flex:1;}
+.mis-anuncio-titulo{font-weight:600;font-size:0.9rem;margin-bottom:2px;}
+.mis-anuncio-meta{font-size:0.75rem;color:var(--text2);}
+.btn-eliminar{background:none;border:1px solid var(--border);color:var(--danger,#e63946);border-radius:8px;padding:6px 12px;font-size:0.75rem;cursor:pointer;font-family:var(--font);font-weight:600;white-space:nowrap;}
+.btn-eliminar:hover{background:#fff0f0;}
+
+@media(min-width: 600px) {
+  .anuncios-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .main { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">Tu<span>Venta</span></div>
+  <input class="nav-search" placeholder="🔍 Buscar en TuVenta..." id="search-input" oninput="filtrarAnuncios()">
+  <button class="btn-publicar" onclick="openPublicar()">+ Publicar</button>
+</nav>
+
+<div class="hero-banner">
+  <h1>Compra y vende en Cuba 🇨🇺</h1>
+  <p>Miles de anuncios de particulares y negocios verificados</p>
+</div>
+
+<div class="cats-wrap">
+  <div class="cats" id="cats">
+    <div class="cat-pill active" onclick="filtrarCat('todos',this)">🏠 Todo</div>
+    <div class="cat-pill" onclick="filtrarCat('electrodomesticos',this)">📺 Electrodomésticos</div>
+    <div class="cat-pill" onclick="filtrarCat('ropa',this)">👕 Ropa</div>
+    <div class="cat-pill" onclick="filtrarCat('alimentos',this)">🍎 Alimentos</div>
+    <div class="cat-pill" onclick="filtrarCat('servicios',this)">🔧 Servicios</div>
+    <div class="cat-pill" onclick="filtrarCat('vehiculos',this)">🚗 Vehículos</div>
+    <div class="cat-pill" onclick="filtrarCat('inmuebles',this)">🏡 Inmuebles</div>
+    <div class="cat-pill" onclick="filtrarCat('mipyme',this)">🏪 MIPYMEs</div>
+  </div>
+</div>
+
+<div class="main content-pad">
+  <div class="section-header">
+    <h2 id="section-titulo">Anuncios recientes</h2>
+    <span class="ver-todo" id="conteo">0 anuncios</span>
+  </div>
+  <div class="anuncios-grid" id="anuncios-grid"></div>
+  <div id="empty-state" style="display:none;text-align:center;padding:40px 20px;color:var(--text2);">
+    <div style="font-size:3rem;margin-bottom:12px;">🔍</div>
+    <div style="font-weight:700;margin-bottom:4px;">No hay anuncios aquí todavía</div>
+    <div style="font-size:0.85rem;">Sé el primero en publicar en esta categoría</div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bnav-item active" onclick="goScreen('inicio',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Inicio
+  </button>
+  <button class="bnav-item" onclick="goScreen('buscar',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Buscar
+  </button>
+  <button class="bnav-publicar" onclick="openPublicar()">
+    <div class="bnav-publicar-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+  </button>
+  <button class="bnav-item" onclick="goScreen('mis-anuncios',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Mis anuncios
+  </button>
+  <button class="bnav-item" onclick="goScreen('perfil',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Perfil
+  </button>
+</nav>
+
+<!-- MODAL PUBLICAR -->
+<div class="modal-overlay" id="modal-publicar">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Publicar anuncio</div>
+    <div class="form-group">
+      <label class="form-label">Fotos</label>
+      <div class="foto-upload" onclick="showToast('📸 Sube fotos desde tu móvil')">
+        <div class="foto-upload-icon">📷</div>
+        <div class="foto-upload-text">Toca para añadir fotos<br><span style="font-size:0.72rem;color:var(--text3)">Máximo 5 fotos</span></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Categoría</label>
+      <select class="form-select" id="pub-categoria">
+        <option value="">Selecciona una categoría</option>
+        <option value="electrodomesticos">📺 Electrodomésticos</option>
+        <option value="ropa">👕 Ropa y calzado</option>
+        <option value="alimentos">🍎 Alimentos</option>
+        <option value="servicios">🔧 Servicios</option>
+        <option value="vehiculos">🚗 Vehículos</option>
+        <option value="inmuebles">🏡 Inmuebles</option>
+        <option value="mipyme">🏪 MIPYME / Negocio</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Título del anuncio</label>
+      <input class="form-input" type="text" id="pub-titulo" placeholder="Ej: Ventilador de techo en buen estado">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <textarea class="form-input" id="pub-desc" rows="3" placeholder="Describe tu producto o servicio..." style="resize:none;"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Precio (CUP)</label>
+        <input class="form-input" type="number" id="pub-precio" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ciudad</label>
+        <select class="form-select" id="pub-ciudad">
+          <option value="">Ciudad</option>
+          <option>La Habana</option>
+          <option>Santiago de Cuba</option>
+          <option>Holguín</option>
+          <option>Camagüey</option>
+          <option>Santa Clara</option>
+          <option>Matanzas</option>
+          <option>Cienfuegos</option>
+          <option>Otra</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tu WhatsApp</label>
+      <input class="form-input" type="tel" id="pub-whatsapp" placeholder="+53 5 XXX XXXX">
+    </div>
+    <button class="btn-submit" onclick="publicarAnuncio()">Publicar gratis</button>
+    <button class="btn-cancel" onclick="closeModal('modal-publicar')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="detalle-contenido"></div>
+    <button class="btn-cancel" onclick="closeModal('modal-detalle')">Cerrar</button>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-logo">TuVenta</div>
+    <div class="auth-sub">Crea tu cuenta para publicar y gestionar tus anuncios</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Entrar</button>
+      <button class="auth-tab" onclick="switchAuthTab('registro')">Registrarse</button>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div id="auth-login">
+      <div class="form-group"><label class="form-label">WhatsApp o correo</label><input class="form-input" type="text" id="login-email" placeholder="+53 5 XXX XXXX"></div>
+      <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" type="password" id="login-pass" placeholder="••••••••"></div>
+      <button class="btn-submit" onclick="doLogin()" id="btn-login">Entrar →</button>
+    </div>
+    <div id="auth-registro" style="display:none;">
+      <div class="form-group"><label class="form-label">Tu nombre</label><input class="form-input" type="text" id="reg-nombre" placeholder="¿Cómo te llaman?"></div>
+      <div class="form-group"><label class="form-label">WhatsApp (+53...)</label><input class="form-input" type="tel" id="reg-whatsapp" placeholder="+53 5 XXX XXXX"></div>
+      <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" type="password" id="reg-pass" placeholder="Mínimo 6 caracteres"></div>
+      <button class="btn-submit" onclick="doRegistro()" id="btn-registro">Crear cuenta →</button>
+    </div>
+    <button class="btn-cancel" onclick="closeModal('auth-overlay')" style="margin-top:8px;">Cancelar</button>
+  </div>
+</div>
+
+<!-- MIS ANUNCIOS MODAL -->
+<div class="modal-overlay" id="modal-mis-anuncios">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Mis anuncios</div>
+    <div id="mis-anuncios-contenido"></div>
+    <button class="btn-cancel" onclick="closeModal('modal-mis-anuncios')" style="margin-top:8px;">Cerrar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://wyuexqgrfigxegtcaigs.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_sU8WGU9UZsowfEyQZDpB-w_sygzksNk';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const emojis = {
+  electrodomesticos:'📺', ropa:'👕', alimentos:'🍎',
+  servicios:'🔧', vehiculos:'🚗', inmuebles:'🏡', mipyme:'🏪'
+};
+
+const nombresCategoria = {
+  electrodomesticos:'Electrodomésticos', ropa:'Ropa y calzado',
+  alimentos:'Alimentos', servicios:'Servicios',
+  vehiculos:'Vehículos', inmuebles:'Inmuebles', mipyme:'MIPYMEs'
+};
+
+// Anuncios de demo
+let anuncios = [];
+let categoriaActual = 'todos';
+let busqueda = '';
+let currentUser = null;
+let currentPerfil = null;
+
+// AUTH
+sb.auth.onAuthStateChange(async (event, session) => {
+  currentUser = session?.user || null;
+  if(currentUser){
+    const {data} = await sb.from('perfiles').select('*').eq('id', currentUser.id).single();
+    currentPerfil = data;
+    actualizarNavUser();
+    // Pre-rellenar formulario con datos del perfil
+    if(currentPerfil){
+      if(document.getElementById('pub-whatsapp')) document.getElementById('pub-whatsapp').value = currentPerfil.whatsapp || '';
+      if(document.getElementById('pub-nombre')) document.getElementById('pub-nombre').value = currentPerfil.nombre || '';
+    }
+  } else {
+    currentPerfil = null;
+    actualizarNavUser();
+  }
+});
+
+function actualizarNavUser(){
+  const nav = document.querySelector('.nav');
+  const existente = document.getElementById('nav-user-area');
+  if(existente) existente.remove();
+  const area = document.createElement('div');
+  area.id = 'nav-user-area';
+  area.style.cssText = 'display:flex;align-items:center;gap:8px;flex-shrink:0;';
+  if(currentUser && currentPerfil){
+    const inicial = (currentPerfil.nombre || 'U').charAt(0).toUpperCase();
+    area.innerHTML = `<div class="nav-avatar" onclick="verMisAnuncios()" title="Mis anuncios">${inicial}</div>`;
+  } else {
+    area.innerHTML = `<button onclick="openAuth()" style="background:none;border:1px solid var(--border);color:var(--text2);border-radius:100px;padding:6px 12px;font-family:var(--font);font-weight:600;font-size:0.78rem;cursor:pointer;">Entrar</button>`;
+  }
+  nav.appendChild(area);
+}
+
+function openAuth(){
+  document.getElementById('auth-overlay').classList.add('open');
+  document.getElementById('auth-error').style.display='none';
+}
+
+function switchAuthTab(tab){
+  document.getElementById('auth-login').style.display = tab==='login'?'block':'none';
+  document.getElementById('auth-registro').style.display = tab==='registro'?'block':'none';
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(tab==='login'&&i===0)||(tab==='registro'&&i===1)));
+  document.getElementById('auth-error').style.display='none';
+}
+
+function showAuthError(msg){
+  const e = document.getElementById('auth-error');
+  e.textContent = msg; e.style.display='block';
+}
+
+async function doLogin(){
+  let emailInput = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if(!emailInput||!pass) return showAuthError('Completa todos los campos');
+  // Si es número de teléfono, convertir a email interno
+  const soloNumeros = emailInput.replace(/\D/g,'');
+  const email = soloNumeros.length >= 8 ? soloNumeros + '@tuventa.cu' : emailInput;
+  const btn = document.getElementById('btn-login');
+  btn.disabled=true; btn.textContent='Entrando...';
+  const {error} = await sb.auth.signInWithPassword({email, password:pass});
+  btn.disabled=false; btn.textContent='Entrar →';
+  if(error) return showAuthError('Correo o contraseña incorrectos');
+  closeModal('auth-overlay');
+  showToast('✓ Bienvenido a TuVenta');
+}
+
+async function doRegistro(){
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const whatsapp = document.getElementById('reg-whatsapp').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  if(!nombre||!whatsapp||!pass) return showAuthError('Completa todos los campos');
+  if(pass.length<6) return showAuthError('La contraseña debe tener al menos 6 caracteres');
+  // Generamos email interno del número de WhatsApp
+  const numero = whatsapp.replace(/\D/g,'');
+  if(numero.length < 8) return showAuthError('Número de WhatsApp inválido');
+  const email = numero + '@tuventa.cu';
+  const btn = document.getElementById('btn-registro');
+  btn.disabled=true; btn.textContent='Creando cuenta...';
+  const {data, error} = await sb.auth.signUp({email, password:pass});
+  if(error){ btn.disabled=false; btn.textContent='Crear cuenta →'; return showAuthError(error.message); }
+  if(data.user){
+    await sb.from('perfiles').upsert({id:data.user.id, nombre, whatsapp, ciudad:''});
+  }
+  btn.disabled=false; btn.textContent='Crear cuenta →';
+  closeModal('auth-overlay');
+  showToast('✓ Cuenta creada, bienvenido a TuVenta');
+}
+
+async function verMisAnuncios(){
+  if(!currentUser) return openAuth();
+  const {data} = await sb.from('anuncios').select('*').eq('user_id', currentUser.id).order('created_at',{ascending:false});
+  const contenido = document.getElementById('mis-anuncios-contenido');
+  if(!data||!data.length){
+    contenido.innerHTML='<div style="text-align:center;padding:30px;color:var(--text2)"><div style="font-size:2rem;margin-bottom:8px">📭</div><div>No tienes anuncios publicados todavía</div></div>';
+  } else {
+    contenido.innerHTML = `<div class="mis-anuncios-list">${data.map(a=>`
+      <div class="mis-anuncio-row">
+        <div class="mis-anuncio-info">
+          <div class="mis-anuncio-titulo">${a.titulo}</div>
+          <div class="mis-anuncio-meta">${Number(a.precio).toLocaleString()} CUP · ${a.ciudad} · ${emojis[a.categoria]||''} ${nombresCategoria[a.categoria]||a.categoria}</div>
+        </div>
+        <button class="btn-eliminar" onclick="eliminarAnuncio(${a.id})">Eliminar</button>
+      </div>`).join('')}</div>`;
+  }
+  document.getElementById('modal-mis-anuncios').classList.add('open');
+}
+
+async function eliminarAnuncio(id){
+  if(!confirm('¿Eliminar este anuncio?')) return;
+  await sb.from('anuncios').update({activo:false}).eq('id',id).eq('user_id',currentUser.id);
+  showToast('✓ Anuncio eliminado');
+  closeModal('modal-mis-anuncios');
+  await cargarAnuncios();
+}
+
+async function cargarAnuncios(){
+  mostrarLoading(true);
+  const { data, error } = await sb
+    .from('anuncios')
+    .select('*')
+    .eq('activo', true)
+    .order('created_at', { ascending: false });
+  if(!error && data) anuncios = data;
+  mostrarLoading(false);
+  renderAnuncios();
+}
+
+function mostrarLoading(show){
+  const grid = document.getElementById('anuncios-grid');
+  if(show){
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text2);">
+        <div style="font-size:2rem;margin-bottom:8px;">⏳</div>
+        <div style="font-size:0.88rem;">Cargando anuncios...</div>
+      </div>`;
+  }
+}
+
+function renderAnuncios(){
+  let filtrados = anuncios;
+  if(categoriaActual !== 'todos') filtrados = filtrados.filter(a => a.categoria === categoriaActual);
+  if(busqueda) filtrados = filtrados.filter(a =>
+    a.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
+    (a.descripcion||'').toLowerCase().includes(busqueda.toLowerCase()) ||
+    a.ciudad.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  const grid = document.getElementById('anuncios-grid');
+  const empty = document.getElementById('empty-state');
+  const conteo = document.getElementById('conteo');
+  const titulo = document.getElementById('section-titulo');
+
+  conteo.textContent = filtrados.length + ' anuncio' + (filtrados.length !== 1 ? 's' : '');
+  titulo.textContent = categoriaActual === 'todos' ? 'Anuncios recientes' : (nombresCategoria[categoriaActual] || 'Anuncios');
+
+  if(!filtrados.length){ grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  grid.innerHTML = filtrados.map(a => `
+    <div class="anuncio-card" onclick="verDetalle(${a.id})">
+      <div class="anuncio-img">
+        ${a.nuevo ? '<span class="badge-nuevo">NUEVO</span>' : ''}
+        ${a.urgente ? '<span class="badge-urgente">URGENTE</span>' : ''}
+        ${emojis[a.categoria] || '📦'}
+      </div>
+      <div class="anuncio-body">
+        <div class="anuncio-precio">${Number(a.precio).toLocaleString()} <span>CUP</span></div>
+        <div class="anuncio-titulo">${a.titulo}</div>
+        <div class="anuncio-meta">
+          📍 ${a.ciudad}
+          ${a.verificado ? '<span class="anuncio-verificado">✓ Verificado</span>' : ''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function filtrarCat(cat, el){
+  categoriaActual = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderAnuncios();
+}
+
+function filtrarAnuncios(){
+  busqueda = document.getElementById('search-input').value;
+  renderAnuncios();
+}
+
+function verDetalle(id){
+  const a = anuncios.find(x => x.id === id);
+  if(!a) return;
+  const nombre = a.nombre_vendedor || a.nombre || 'Vendedor';
+  const desc = a.descripcion || a.desc || '';
+  const wa = a.whatsapp.replace(/\s/g,'').replace('+','');
+  const msg = encodeURIComponent(`Hola, vi tu anuncio en TuVenta: "${a.titulo}" a ${Number(a.precio).toLocaleString()} CUP. ¿Está disponible?`);
+  const fechaStr = a.created_at ? new Date(a.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short'}) : '';
+  document.getElementById('detalle-contenido').innerHTML = `
+    <div class="detalle-img">${emojis[a.categoria] || '📦'}</div>
+    <div class="detalle-precio">${Number(a.precio).toLocaleString()} CUP</div>
+    <div class="detalle-titulo">${a.titulo}</div>
+    <div class="detalle-tags">
+      <span class="detalle-tag">${emojis[a.categoria] || ''} ${nombresCategoria[a.categoria] || a.categoria}</span>
+      <span class="detalle-tag">📍 ${a.ciudad}</span>
+      ${a.verificado ? '<span class="detalle-tag" style="color:var(--accent2);border-color:var(--accent2)">✓ Verificado</span>' : ''}
+      ${a.urgente ? '<span class="detalle-tag" style="color:var(--accent)">🔥 Urgente</span>' : ''}
+      ${fechaStr ? `<span class="detalle-tag">📅 ${fechaStr}</span>` : ''}
+    </div>
+    <div class="detalle-vendedor">
+      <div class="vendedor-avatar">${nombre.charAt(0).toUpperCase()}</div>
+      <div>
+        <div class="vendedor-name">${nombre} ${a.verificado ? '<span class="vendedor-verificado">✓</span>' : ''}</div>
+        <div class="vendedor-meta">Vendedor en TuVenta</div>
+      </div>
+    </div>
+    <div class="detalle-desc">${desc || 'Sin descripción'}</div>
+    <a href="https://wa.me/${wa}?text=${msg}" target="_blank" class="btn-whatsapp">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Contactar por WhatsApp
+    </a>`;
+  document.getElementById('modal-detalle').classList.add('open');
+}
+
+function openPublicar(){
+  if(!currentUser){ openAuth(); return; }
+  document.getElementById('modal-publicar').classList.add('open');
+}
+
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+
+async function publicarAnuncio(){
+  const titulo = document.getElementById('pub-titulo').value.trim();
+  const categoria = document.getElementById('pub-categoria').value;
+  const precio = document.getElementById('pub-precio').value;
+  const ciudad = document.getElementById('pub-ciudad').value;
+  const whatsapp = document.getElementById('pub-whatsapp').value.trim();
+  const nombre = currentPerfil ? currentPerfil.nombre : '';
+  const desc = document.getElementById('pub-desc').value.trim();
+
+  if(!titulo) return showToast('Escribe un título para tu anuncio');
+  if(!categoria) return showToast('Selecciona una categoría');
+  if(!precio) return showToast('Pon el precio de tu anuncio');
+  if(!ciudad) return showToast('Selecciona tu ciudad');
+  if(!whatsapp) return showToast('Añade tu número de WhatsApp');
+
+  const btnSubmit = document.querySelector('.btn-submit');
+  btnSubmit.disabled = true;
+  btnSubmit.textContent = 'Publicando...';
+
+  const { data, error } = await sb.from('anuncios').insert({
+    titulo,
+    descripcion: desc || '',
+    precio: parseInt(precio),
+    categoria,
+    ciudad,
+    whatsapp,
+    nombre_vendedor: nombre,
+    verificado: false,
+    urgente: false,
+    activo: true,
+    user_id: currentUser ? currentUser.id : null
+  }).select().single();
+
+  btnSubmit.disabled = false;
+  btnSubmit.textContent = 'Publicar gratis';
+
+  if(error){ showToast('Error al publicar, intenta de nuevo'); return; }
+
+  closeModal('modal-publicar');
+  ['pub-titulo','pub-categoria','pub-precio','pub-ciudad','pub-whatsapp','pub-nombre','pub-desc'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+
+  await cargarAnuncios();
+  showToast('✓ Anuncio publicado correctamente');
+}
+
+function goScreen(screen, btn){
+  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(screen === 'buscar'){
+    document.getElementById('search-input').focus();
+  } else if(screen === 'mis-anuncios'){
+    verMisAnuncios();
+  } else if(screen === 'perfil'){
+    if(currentUser){ if(confirm('¿Cerrar sesión?')) { sb.auth.signOut().then(()=>showToast('Sesión cerrada')); } }
+    else openAuth();
+  }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// INIT
+cargarAnuncios();
+</script>
+</body>
+</html>
