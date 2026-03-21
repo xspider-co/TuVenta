@@ -303,10 +303,6 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
         </select>
       </div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Tu WhatsApp</label>
-      <input class="form-input" type="tel" id="pub-whatsapp" placeholder="+53 5 XXX XXXX">
-    </div>
     <button class="btn-submit" onclick="publicarAnuncio()">Publicar gratis</button>
     <button class="btn-cancel" onclick="closeModal('modal-publicar')">Cancelar</button>
   </div>
@@ -338,7 +334,13 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     </div>
     <div id="auth-registro" style="display:none;">
       <div class="form-group"><label class="form-label">Tu nombre</label><input class="form-input" type="text" id="reg-nombre" placeholder="¿Cómo te llaman?"></div>
-      <div class="form-group"><label class="form-label">WhatsApp (+53...)</label><input class="form-input" type="tel" id="reg-whatsapp" placeholder="+53 5 XXX XXXX"></div>
+      <div class="form-group">
+        <label class="form-label">WhatsApp</label>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-weight:700;font-size:16px;white-space:nowrap;color:var(--text2);">+53</div>
+          <input class="form-input" type="tel" id="reg-whatsapp" placeholder="5 XXX XXXX" style="flex:1;">
+        </div>
+      </div>
       <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" type="password" id="reg-pass" placeholder="Mínimo 6 caracteres"></div>
       <button class="btn-submit" onclick="doRegistro()" id="btn-registro">Crear cuenta →</button>
     </div>
@@ -438,8 +440,13 @@ async function doLogin(){
   const pass = document.getElementById('login-pass').value;
   if(!emailInput||!pass) return showAuthError('Completa todos los campos');
   // Si es número de teléfono, convertir a email interno
-  const soloNumeros = emailInput.replace(/\D/g,'');
-  const email = soloNumeros.length >= 8 ? soloNumeros + '@tuventa.cu' : emailInput;
+  const soloNumeros = emailInput.replace(/[^0-9]/g,'');
+  let email = emailInput;
+  if(soloNumeros.length >= 7 && soloNumeros.length <= 9){
+    email = '53' + soloNumeros + '@tuventa.cu';
+  } else if(soloNumeros.length >= 10){
+    email = soloNumeros + '@tuventa.cu';
+  }
   const btn = document.getElementById('btn-login');
   btn.disabled=true; btn.textContent='Entrando...';
   const {error} = await sb.auth.signInWithPassword({email, password:pass});
@@ -456,15 +463,17 @@ async function doRegistro(){
   if(!nombre||!whatsapp||!pass) return showAuthError('Completa todos los campos');
   if(pass.length<6) return showAuthError('La contraseña debe tener al menos 6 caracteres');
   // Generamos email interno del número de WhatsApp
-  const numero = whatsapp.replace(/\D/g,'');
-  if(numero.length < 8) return showAuthError('Número de WhatsApp inválido');
+  const soloDigitos = whatsapp.replace(/[^0-9]/g,'');
+  if(soloDigitos.length < 7) return showAuthError('Número de WhatsApp inválido');
+  const numero = '53' + soloDigitos;
   const email = numero + '@tuventa.cu';
   const btn = document.getElementById('btn-registro');
   btn.disabled=true; btn.textContent='Creando cuenta...';
   const {data, error} = await sb.auth.signUp({email, password:pass});
   if(error){ btn.disabled=false; btn.textContent='Crear cuenta →'; return showAuthError(error.message); }
   if(data.user){
-    await sb.from('perfiles').upsert({id:data.user.id, nombre, whatsapp, ciudad:''});
+    const waLimpio = soloDigitos;
+    await sb.from('perfiles').upsert({id:data.user.id, nombre, whatsapp: waLimpio, ciudad:''});
   }
   btn.disabled=false; btn.textContent='Crear cuenta →';
   closeModal('auth-overlay');
@@ -619,7 +628,7 @@ async function publicarAnuncio(){
   const categoria = document.getElementById('pub-categoria').value;
   const precio = document.getElementById('pub-precio').value;
   const ciudad = document.getElementById('pub-ciudad').value;
-  const whatsapp = document.getElementById('pub-whatsapp').value.trim();
+  const whatsapp = currentPerfil ? '53' + currentPerfil.whatsapp.replace(/[^0-9]/g,'').replace(/^53/,'') : '';
   const nombre = currentPerfil ? currentPerfil.nombre : '';
   const desc = document.getElementById('pub-desc').value.trim();
 
@@ -627,7 +636,7 @@ async function publicarAnuncio(){
   if(!categoria) return showToast('Selecciona una categoría');
   if(!precio) return showToast('Pon el precio de tu anuncio');
   if(!ciudad) return showToast('Selecciona tu ciudad');
-  if(!whatsapp) return showToast('Añade tu número de WhatsApp');
+
 
   const btnSubmit = document.querySelector('.btn-submit');
   btnSubmit.disabled = true;
