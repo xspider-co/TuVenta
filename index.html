@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TuVenta — Compra y vende en Cuba</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface2: #f0efe9;
+  --border: #e8e6df;
+  --accent: #e63946;
+  --accent2: #2d6a4f;
+  --accent3: #f4a261;
+  --text: #1a1a1a;
+  --text2: #666660;
+  --text3: #aaa9a0;
+  --radius: 12px;
+  --font: 'Figtree', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* NAV */
+.nav {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  padding: 0 16px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.nav-logo { font-weight: 800; font-size: 1.3rem; color: var(--accent); letter-spacing: -0.5px; white-space: nowrap; }
+.nav-logo span { color: var(--text2); font-weight: 400; }
+.nav-search {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 100px; padding: 8px 16px; font-family: var(--font);
+  font-size: 0.88rem; outline: none; color: var(--text); max-width: 400px;
+}
+.nav-search:focus { border-color: var(--accent); }
+.btn-publicar {
+  background: var(--accent); color: white; border: none; border-radius: 100px;
+  padding: 9px 18px; font-family: var(--font); font-weight: 700; font-size: 0.82rem;
+  cursor: pointer; white-space: nowrap; transition: opacity 0.2s;
+}
+.btn-publicar:hover { opacity: 0.88; }
+
+/* HERO BANNER */
+.hero-banner {
+  background: var(--accent); color: white;
+  padding: 20px 16px; text-align: center;
+}
+.hero-banner h1 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+.hero-banner p { font-size: 0.82rem; opacity: 0.88; }
+
+/* CATEGORÍAS */
+.cats-wrap { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 16px; overflow-x: auto; }
+.cats { display: flex; gap: 8px; width: max-content; }
+.cat-pill {
+  background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 100px; padding: 6px 14px; font-size: 0.8rem; font-weight: 600;
+  cursor: pointer; white-space: nowrap; transition: all 0.2s; color: var(--text2);
+  display: flex; align-items: center; gap: 5px;
+}
+.cat-pill:hover, .cat-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* CONTENIDO PRINCIPAL */
+.main { max-width: 900px; margin: 0 auto; padding: 16px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.section-header h2 { font-size: 1rem; font-weight: 700; }
+.ver-todo { font-size: 0.8rem; color: var(--accent); font-weight: 600; cursor: pointer; }
+
+/* GRID ANUNCIOS */
+.anuncios-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 24px; }
+.anuncio-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  overflow: hidden; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+}
+.anuncio-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.anuncio-img {
+  width: 100%; aspect-ratio: 1; background: var(--surface2);
+  display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
+  position: relative; overflow: hidden;
+}
+.anuncio-img img { width: 100%; height: 100%; object-fit: cover; }
+.badge-nuevo { position: absolute; top: 6px; left: 6px; background: var(--accent2); color: white; font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 100px; }
+.badge-urgente { position: absolute; top: 6px; left: 6px; background: var(--accent); color: white; font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 100px; }
+.anuncio-body { padding: 10px; }
+.anuncio-precio { font-weight: 800; font-size: 1rem; color: var(--text); margin-bottom: 2px; }
+.anuncio-precio span { font-size: 0.7rem; font-weight: 500; color: var(--text2); }
+.anuncio-titulo { font-size: 0.82rem; color: var(--text2); margin-bottom: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.anuncio-meta { font-size: 0.72rem; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+.anuncio-verificado { color: var(--accent2); font-size: 0.7rem; font-weight: 600; }
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface);
+  border-top: 1px solid var(--border); display: flex; z-index: 100;
+}
+.bnav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 8px 4px; cursor: pointer;
+  color: var(--text3); font-size: 0.58rem; gap: 3px; border: none; background: none;
+  font-family: var(--font); font-weight: 600; transition: color 0.2s;
+}
+.bnav-item.active { color: var(--accent); }
+.bnav-item svg { width: 22px; height: 22px; }
+.bnav-publicar {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 6px 4px; cursor: pointer; border: none; background: none;
+  font-family: var(--font);
+}
+.bnav-publicar-btn {
+  background: var(--accent); color: white; border-radius: 50%;
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px rgba(230,57,70,0.35);
+}
+.bnav-publicar-btn svg { width: 22px; height: 22px; }
+
+/* MODAL PUBLICAR */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-end; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 24px 16px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 20px; }
+.form-group { margin-bottom: 14px; }
+.form-label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.6px; }
+.form-input { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; font-family: var(--font); font-size: 16px; outline: none; color: var(--text); transition: border-color 0.2s; }
+.form-input:focus { border-color: var(--accent); }
+.form-select { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; font-family: var(--font); font-size: 16px; outline: none; color: var(--text); appearance: none; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.foto-upload { border: 2px dashed var(--border); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: border-color 0.2s; }
+.foto-upload:hover { border-color: var(--accent); }
+.foto-upload-icon { font-size: 2rem; margin-bottom: 8px; }
+.foto-upload-text { font-size: 0.82rem; color: var(--text2); }
+.btn-submit { width: 100%; background: var(--accent); color: white; border: none; border-radius: 10px; padding: 14px; font-family: var(--font); font-weight: 700; font-size: 1rem; cursor: pointer; margin-top: 8px; transition: opacity 0.2s; }
+.btn-submit:hover { opacity: 0.88; }
+.btn-cancel { width: 100%; background: transparent; color: var(--text2); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px; font-family: var(--font); font-weight: 600; font-size: 0.9rem; cursor: pointer; margin-top: 8px; }
+
+/* MODAL DETALLE */
+.detalle-img { width: 100%; aspect-ratio: 4/3; background: var(--surface2); display: flex; align-items: center; justify-content: center; font-size: 5rem; border-radius: 12px; margin-bottom: 16px; overflow: hidden; }
+.detalle-precio { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
+.detalle-titulo { font-size: 1rem; color: var(--text2); margin-bottom: 12px; line-height: 1.4; }
+.detalle-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.detalle-tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 4px 10px; font-size: 0.75rem; font-weight: 600; color: var(--text2); }
+.detalle-vendedor { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+.vendedor-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1rem; flex-shrink: 0; }
+.vendedor-name { font-weight: 700; font-size: 0.95rem; }
+.vendedor-meta { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+.vendedor-verificado { color: var(--accent2); font-weight: 700; }
+.btn-whatsapp { width: 100%; background: #25D366; color: white; border: none; border-radius: 10px; padding: 14px; font-family: var(--font); font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px; }
+.btn-whatsapp:hover { opacity: 0.9; }
+.detalle-desc { font-size: 0.9rem; color: var(--text2); line-height: 1.6; margin-bottom: 16px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: white; padding: 10px 20px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; opacity: 0; transition: all 0.3s; z-index: 300; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.content-pad { padding-bottom: 72px; }
+
+@media(min-width: 600px) {
+  .anuncios-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .main { padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">Tu<span>Venta</span></div>
+  <input class="nav-search" placeholder="🔍 Buscar en TuVenta..." id="search-input" oninput="filtrarAnuncios()">
+  <button class="btn-publicar" onclick="openPublicar()">+ Publicar</button>
+</nav>
+
+<div class="hero-banner">
+  <h1>Compra y vende en Cuba 🇨🇺</h1>
+  <p>Miles de anuncios de particulares y negocios verificados</p>
+</div>
+
+<div class="cats-wrap">
+  <div class="cats" id="cats">
+    <div class="cat-pill active" onclick="filtrarCat('todos',this)">🏠 Todo</div>
+    <div class="cat-pill" onclick="filtrarCat('electrodomesticos',this)">📺 Electrodomésticos</div>
+    <div class="cat-pill" onclick="filtrarCat('ropa',this)">👕 Ropa</div>
+    <div class="cat-pill" onclick="filtrarCat('alimentos',this)">🍎 Alimentos</div>
+    <div class="cat-pill" onclick="filtrarCat('servicios',this)">🔧 Servicios</div>
+    <div class="cat-pill" onclick="filtrarCat('vehiculos',this)">🚗 Vehículos</div>
+    <div class="cat-pill" onclick="filtrarCat('inmuebles',this)">🏡 Inmuebles</div>
+    <div class="cat-pill" onclick="filtrarCat('mipyme',this)">🏪 MIPYMEs</div>
+  </div>
+</div>
+
+<div class="main content-pad">
+  <div class="section-header">
+    <h2 id="section-titulo">Anuncios recientes</h2>
+    <span class="ver-todo" id="conteo">0 anuncios</span>
+  </div>
+  <div class="anuncios-grid" id="anuncios-grid"></div>
+  <div id="empty-state" style="display:none;text-align:center;padding:40px 20px;color:var(--text2);">
+    <div style="font-size:3rem;margin-bottom:12px;">🔍</div>
+    <div style="font-weight:700;margin-bottom:4px;">No hay anuncios aquí todavía</div>
+    <div style="font-size:0.85rem;">Sé el primero en publicar en esta categoría</div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bnav-item active" onclick="goScreen('inicio',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Inicio
+  </button>
+  <button class="bnav-item" onclick="goScreen('buscar',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Buscar
+  </button>
+  <button class="bnav-publicar" onclick="openPublicar()">
+    <div class="bnav-publicar-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+  </button>
+  <button class="bnav-item" onclick="goScreen('mis-anuncios',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Mis anuncios
+  </button>
+  <button class="bnav-item" onclick="goScreen('perfil',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    Perfil
+  </button>
+</nav>
+
+<!-- MODAL PUBLICAR -->
+<div class="modal-overlay" id="modal-publicar">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Publicar anuncio</div>
+    <div class="form-group">
+      <label class="form-label">Fotos</label>
+      <div class="foto-upload" onclick="showToast('📸 Sube fotos desde tu móvil')">
+        <div class="foto-upload-icon">📷</div>
+        <div class="foto-upload-text">Toca para añadir fotos<br><span style="font-size:0.72rem;color:var(--text3)">Máximo 5 fotos</span></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Categoría</label>
+      <select class="form-select" id="pub-categoria">
+        <option value="">Selecciona una categoría</option>
+        <option value="electrodomesticos">📺 Electrodomésticos</option>
+        <option value="ropa">👕 Ropa y calzado</option>
+        <option value="alimentos">🍎 Alimentos</option>
+        <option value="servicios">🔧 Servicios</option>
+        <option value="vehiculos">🚗 Vehículos</option>
+        <option value="inmuebles">🏡 Inmuebles</option>
+        <option value="mipyme">🏪 MIPYME / Negocio</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Título del anuncio</label>
+      <input class="form-input" type="text" id="pub-titulo" placeholder="Ej: Ventilador de techo en buen estado">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <textarea class="form-input" id="pub-desc" rows="3" placeholder="Describe tu producto o servicio..." style="resize:none;"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Precio (CUP)</label>
+        <input class="form-input" type="number" id="pub-precio" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ciudad</label>
+        <select class="form-select" id="pub-ciudad">
+          <option value="">Ciudad</option>
+          <option>La Habana</option>
+          <option>Santiago de Cuba</option>
+          <option>Holguín</option>
+          <option>Camagüey</option>
+          <option>Santa Clara</option>
+          <option>Matanzas</option>
+          <option>Cienfuegos</option>
+          <option>Otra</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tu WhatsApp</label>
+      <input class="form-input" type="tel" id="pub-whatsapp" placeholder="+53 5 XXX XXXX">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tu nombre</label>
+      <input class="form-input" type="text" id="pub-nombre" placeholder="¿Cómo te llaman?">
+    </div>
+    <button class="btn-submit" onclick="publicarAnuncio()">Publicar gratis</button>
+    <button class="btn-cancel" onclick="closeModal('modal-publicar')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="detalle-contenido"></div>
+    <button class="btn-cancel" onclick="closeModal('modal-detalle')">Cerrar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'tuventa_anuncios';
+
+const emojis = {
+  electrodomesticos:'📺', ropa:'👕', alimentos:'🍎',
+  servicios:'🔧', vehiculos:'🚗', inmuebles:'🏡', mipyme:'🏪'
+};
+
+const nombresCategoria = {
+  electrodomesticos:'Electrodomésticos', ropa:'Ropa y calzado',
+  alimentos:'Alimentos', servicios:'Servicios',
+  vehiculos:'Vehículos', inmuebles:'Inmuebles', mipyme:'MIPYMEs'
+};
+
+// Anuncios de demo
+const demoAnuncios = [
+  {id:1,titulo:'Ventilador de techo Orbit, funciona perfecto',precio:4500,categoria:'electrodomesticos',ciudad:'La Habana',whatsapp:'53512345678',nombre:'Carlos M.',desc:'Ventilador de techo marca Orbit, 3 velocidades, con control remoto. Vendiendo por cambio de domicilio.',verificado:true,nuevo:false,urgente:false},
+  {id:2,titulo:'Arroz graneado, saco de 100lb recién llegado',precio:12000,categoria:'alimentos',ciudad:'La Habana',whatsapp:'53587654321',nombre:'Bodega El Progreso',desc:'Arroz graneado de primera calidad. Saco de 100 libras. Precio por saco completo, no se vende fraccionado.',verificado:true,nuevo:true,urgente:false},
+  {id:3,titulo:'Electricista certificado, trabajo garantizado',precio:500,categoria:'servicios',ciudad:'Santiago de Cuba',whatsapp:'53598765432',nombre:'Pedro R.',desc:'Instalaciones eléctricas, reparaciones, cambios de contador. Más de 10 años de experiencia. Presupuesto gratis.',verificado:false,nuevo:false,urgente:false},
+  {id:4,titulo:'Yamaha 125cc año 2019, buen estado',precio:85000,categoria:'vehiculos',ciudad:'Holguín',whatsapp:'53523456789',nombre:'Lázaro F.',desc:'Moto Yamaha 125cc, año 2019. Motor recién chequeado, papeles en regla. Precio negociable.',verificado:false,nuevo:false,urgente:true},
+  {id:5,titulo:'Ropa de niño talla 2-4 años, casi nueva',precio:800,categoria:'ropa',ciudad:'La Habana',whatsapp:'53534567890',nombre:'Ana L.',desc:'Lote de ropa para niño tallas 2 a 4 años. Aproximadamente 15 piezas en buen estado.',verificado:false,nuevo:true,urgente:false},
+  {id:6,titulo:'Pizzería La Romana — menú del día',precio:350,categoria:'mipyme',ciudad:'La Habana',whatsapp:'53545678901',nombre:'Pizzería La Romana',desc:'Pizzas medianas desde 350 CUP. También lasagnas, pastas y refrescos. Delivery en el Vedado.',verificado:true,nuevo:false,urgente:false},
+  {id:7,titulo:'Refrigerador Haier 9.1 pies, excelente estado',precio:32000,categoria:'electrodomesticos',ciudad:'Camagüey',whatsapp:'53556789012',nombre:'Roberto S.',desc:'Refrigerador Haier 9.1 pies, color blanco. Enfría perfecto, sin golpes. Vendiendo por viaje.',verificado:false,nuevo:false,urgente:true},
+  {id:8,titulo:'Apartamento en renta, Miramar La Habana',precio:15000,categoria:'inmuebles',ciudad:'La Habana',whatsapp:'53567890123',nombre:'Inmobiliaria Privada',desc:'Apartamento 2 habitaciones en Miramar, amueblado, con AC, agua corriente. Renta mensual.',verificado:true,nuevo:false,urgente:false},
+];
+
+let anuncios = [];
+let categoriaActual = 'todos';
+let busqueda = '';
+
+function cargarAnuncios(){
+  try {
+    const guardados = localStorage.getItem(STORAGE_KEY);
+    const propios = guardados ? JSON.parse(guardados) : [];
+    anuncios = [...demoAnuncios, ...propios];
+  } catch(e) {
+    anuncios = [...demoAnuncios];
+  }
+}
+
+function guardarAnuncios(){
+  try {
+    const propios = anuncios.filter(a => a.id > 1000);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(propios));
+  } catch(e){}
+}
+
+function renderAnuncios(){
+  let filtrados = anuncios;
+  if(categoriaActual !== 'todos') filtrados = filtrados.filter(a => a.categoria === categoriaActual);
+  if(busqueda) filtrados = filtrados.filter(a =>
+    a.titulo.toLowerCase().includes(busqueda.toLowerCase()) ||
+    a.desc.toLowerCase().includes(busqueda.toLowerCase()) ||
+    a.ciudad.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  const grid = document.getElementById('anuncios-grid');
+  const empty = document.getElementById('empty-state');
+  const conteo = document.getElementById('conteo');
+  const titulo = document.getElementById('section-titulo');
+
+  conteo.textContent = filtrados.length + ' anuncio' + (filtrados.length !== 1 ? 's' : '');
+  titulo.textContent = categoriaActual === 'todos' ? 'Anuncios recientes' : (nombresCategoria[categoriaActual] || 'Anuncios');
+
+  if(!filtrados.length){ grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  grid.innerHTML = filtrados.map(a => `
+    <div class="anuncio-card" onclick="verDetalle(${a.id})">
+      <div class="anuncio-img">
+        ${a.nuevo ? '<span class="badge-nuevo">NUEVO</span>' : ''}
+        ${a.urgente ? '<span class="badge-urgente">URGENTE</span>' : ''}
+        ${emojis[a.categoria] || '📦'}
+      </div>
+      <div class="anuncio-body">
+        <div class="anuncio-precio">${Number(a.precio).toLocaleString()} <span>CUP</span></div>
+        <div class="anuncio-titulo">${a.titulo}</div>
+        <div class="anuncio-meta">
+          📍 ${a.ciudad}
+          ${a.verificado ? '<span class="anuncio-verificado">✓ Verificado</span>' : ''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function filtrarCat(cat, el){
+  categoriaActual = cat;
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderAnuncios();
+}
+
+function filtrarAnuncios(){
+  busqueda = document.getElementById('search-input').value;
+  renderAnuncios();
+}
+
+function verDetalle(id){
+  const a = anuncios.find(x => x.id === id);
+  if(!a) return;
+  const wa = a.whatsapp.replace(/\s/g,'').replace('+','');
+  const msg = encodeURIComponent(`Hola, vi tu anuncio en TuVenta: "${a.titulo}" a ${Number(a.precio).toLocaleString()} CUP. ¿Está disponible?`);
+  document.getElementById('detalle-contenido').innerHTML = `
+    <div class="detalle-img">${emojis[a.categoria] || '📦'}</div>
+    <div class="detalle-precio">${Number(a.precio).toLocaleString()} CUP</div>
+    <div class="detalle-titulo">${a.titulo}</div>
+    <div class="detalle-tags">
+      <span class="detalle-tag">${emojis[a.categoria]} ${nombresCategoria[a.categoria]}</span>
+      <span class="detalle-tag">📍 ${a.ciudad}</span>
+      ${a.verificado ? '<span class="detalle-tag" style="color:var(--accent2);border-color:var(--accent2)">✓ Verificado</span>' : ''}
+      ${a.nuevo ? '<span class="detalle-tag" style="color:var(--accent2)">NUEVO</span>' : ''}
+    </div>
+    <div class="detalle-vendedor">
+      <div class="vendedor-avatar">${a.nombre.charAt(0).toUpperCase()}</div>
+      <div>
+        <div class="vendedor-name">${a.nombre} ${a.verificado ? '<span class="vendedor-verificado">✓</span>' : ''}</div>
+        <div class="vendedor-meta">Vendedor en TuVenta</div>
+      </div>
+    </div>
+    <div class="detalle-desc">${a.desc}</div>
+    <a href="https://wa.me/${wa}?text=${msg}" target="_blank" class="btn-whatsapp">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Contactar por WhatsApp
+    </a>`;
+  document.getElementById('modal-detalle').classList.add('open');
+}
+
+function openPublicar(){
+  document.getElementById('modal-publicar').classList.add('open');
+}
+
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+
+function publicarAnuncio(){
+  const titulo = document.getElementById('pub-titulo').value.trim();
+  const categoria = document.getElementById('pub-categoria').value;
+  const precio = document.getElementById('pub-precio').value;
+  const ciudad = document.getElementById('pub-ciudad').value;
+  const whatsapp = document.getElementById('pub-whatsapp').value.trim();
+  const nombre = document.getElementById('pub-nombre').value.trim();
+  const desc = document.getElementById('pub-desc').value.trim();
+
+  if(!titulo) return showToast('Escribe un título para tu anuncio');
+  if(!categoria) return showToast('Selecciona una categoría');
+  if(!precio) return showToast('Pon el precio de tu anuncio');
+  if(!ciudad) return showToast('Selecciona tu ciudad');
+  if(!whatsapp) return showToast('Añade tu número de WhatsApp');
+  if(!nombre) return showToast('¿Cómo te llaman?');
+
+  const nuevo = {
+    id: Date.now(),
+    titulo, categoria, precio: parseInt(precio),
+    ciudad, whatsapp, nombre, desc: desc || 'Sin descripción',
+    verificado: false, nuevo: true, urgente: false
+  };
+
+  anuncios.unshift(nuevo);
+  guardarAnuncios();
+  closeModal('modal-publicar');
+
+  // Limpiar form
+  ['pub-titulo','pub-categoria','pub-precio','pub-ciudad','pub-whatsapp','pub-nombre','pub-desc'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+
+  categoriaActual = 'todos';
+  document.querySelectorAll('.cat-pill').forEach((p,i) => p.classList.toggle('active', i===0));
+  renderAnuncios();
+  showToast('✓ Anuncio publicado correctamente');
+}
+
+function goScreen(screen, btn){
+  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(screen === 'buscar'){
+    document.getElementById('search-input').focus();
+  } else if(screen === 'mis-anuncios'){
+    showToast('Próximamente: Mis anuncios');
+  } else if(screen === 'perfil'){
+    showToast('Próximamente: Mi perfil');
+  }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// INIT
+cargarAnuncios();
+renderAnuncios();
+</script>
+</body>
+</html>
