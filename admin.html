@@ -137,6 +137,14 @@ tr:hover td{background:var(--surface2);}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Usuarios
       </div>
+      <div class="sidebar-item" onclick="goTo('reportes',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Reportes
+      </div>
+      <div class="sidebar-item" onclick="goTo('reportes',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Reportes
+      </div>
     </div>
 
     <div class="content">
@@ -179,6 +187,28 @@ tr:hover td{background:var(--surface2);}
           <table>
             <thead><tr><th>Nombre</th><th>WhatsApp</th><th>Ciudad</th><th>Registro</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody id="tabla-usuarios"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REPORTES -->
+      <div class="screen" id="screen-reportes">
+        <div class="section-title">Reportes de usuarios</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Anuncio</th><th>Motivo</th><th>Fecha</th><th>Acciones</th></tr></thead>
+            <tbody id="tabla-reportes"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REPORTES -->
+      <div class="screen" id="screen-reportes">
+        <div class="section-title">Reportes de usuarios</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Anuncio</th><th>Motivo</th><th>Fecha</th><th>Acciones</th></tr></thead>
+            <tbody id="tabla-reportes"></tbody>
           </table>
         </div>
       </div>
@@ -229,7 +259,28 @@ async function doLogout(){
 }
 
 async function cargarTodo(){
-  await Promise.all([cargarStats(),cargarAnuncios(),cargarUsuarios()]);
+  await Promise.all([cargarStats(),cargarAnuncios(),cargarUsuarios(),cargarReportes()]);
+}
+
+async function cargarReportes(){
+  const {data}=await sb.from('reportes').select('*, anuncios(titulo)').order('created_at',{ascending:false});
+  const MOTIVOS={fraude:'🚨 Fraude o estafa',spam:'📢 Spam',precio:'💰 Precio engañoso',inapropiado:'🔞 Inapropiado',duplicado:'📋 Duplicado',otro:'❓ Otro'};
+  document.getElementById('tabla-reportes').innerHTML=(data||[]).length?(data||[]).map(r=>`
+    <tr>
+      <td style="font-weight:600;">${r.anuncios?.titulo||'Anuncio eliminado'}</td>
+      <td>${MOTIVOS[r.motivo]||r.motivo}</td>
+      <td style="color:var(--text2);font-size:0.78rem;">${new Date(r.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}</td>
+      <td><button class="btn-accion danger" onclick="eliminarAnuncioReportado(${r.anuncio_id},${r.id})">Eliminar anuncio</button></td>
+    </tr>`).join(''):`<tr><td colspan="4"><div class="empty"><div class="empty-icon">✅</div>No hay reportes pendientes</div></td></tr>`;
+}
+
+async function eliminarAnuncioReportado(anuncioId, reporteId){
+  if(!confirm('¿Eliminar el anuncio reportado?')) return;
+  await Promise.all([
+    sb.from('anuncios').delete().eq('id',anuncioId),
+    sb.from('reportes').delete().eq('id',reporteId)
+  ]);
+  await Promise.all([cargarAnuncios(),cargarReportes(),cargarStats()]);
 }
 
 async function cargarStats(){
@@ -332,6 +383,48 @@ function filtrarTablaUsuarios(){
 async function toggleVerificado(id,actual){
   await sb.from('perfiles').update({verificado:!actual}).eq('id',id);
   await cargarUsuarios();
+}
+
+async function cargarReportes(){
+  const {data} = await sb.from('reportes')
+    .select('id, motivo, created_at, anuncio_id, anuncios(titulo, precio, ciudad)')
+    .order('created_at', {ascending:false});
+  const tbody = document.getElementById('tabla-reportes');
+  if(!data||!data.length){
+    tbody.innerHTML='<tr><td colspan="4"><div class="empty"><div class="empty-icon">🚩</div>No hay reportes</div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(r=>`
+    <tr id="row-r-${r.id}">
+      <td>
+        <div style="font-weight:600;">${r.anuncios?.titulo||'Anuncio eliminado'}</div>
+        <div style="font-size:0.75rem;color:var(--text2);">${r.anuncios?.precio?Number(r.anuncios.precio).toLocaleString()+' CUP':''} ${r.anuncios?.ciudad||''}</div>
+      </td>
+      <td><span class="badge badge-yellow">${motivoTexto(r.motivo)}</span></td>
+      <td style="color:var(--text2);font-size:0.78rem;">${new Date(r.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}</td>
+      <td>
+        <button class="btn-accion danger" onclick="eliminarAnuncioDesdeReporte(${r.anuncio_id},${r.id})">Eliminar anuncio</button>
+        <button class="btn-accion" onclick="ignorarReporte(${r.id})">Ignorar</button>
+      </td>
+    </tr>`).join('');
+}
+
+function motivoTexto(motivo){
+  const m={fraude:'💰 Fraude',duplicado:'📋 Duplicado',precio_irreal:'💸 Precio irreal',contacto_falso:'📵 Contacto falso',contenido_inapropiado:'🚫 Inapropiado',otro:'❓ Otro'};
+  return m[motivo]||motivo;
+}
+
+async function eliminarAnuncioDesdeReporte(anuncioId, reporteId){
+  if(!confirm('¿Eliminar el anuncio reportado?')) return;
+  await sb.from('anuncios').delete().eq('id', anuncioId);
+  await sb.from('reportes').delete().eq('id', reporteId);
+  await cargarReportes();
+  await cargarStats();
+}
+
+async function ignorarReporte(id){
+  await sb.from('reportes').delete().eq('id', id);
+  document.getElementById('row-r-'+id)?.remove();
 }
 
 function goTo(screen,el){
