@@ -352,6 +352,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">Editar anuncio</div>
+    <div class="form-group">
+      <label class="form-label">Foto</label>
+      <div class="foto-upload" id="edit-foto-area" onclick="document.getElementById('edit-foto-input').click()">
+        <div id="edit-foto-preview" style="display:none;width:100%;aspect-ratio:4/3;border-radius:8px;overflow:hidden;">
+          <img id="edit-foto-preview-img" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        <div id="edit-foto-placeholder">
+          <div style="font-size:2rem;margin-bottom:8px;">📷</div>
+          <div style="font-size:0.82rem;color:var(--text2);">Toca para cambiar la foto</div>
+        </div>
+      </div>
+      <input type="file" id="edit-foto-input" accept="image/*" style="display:none;" onchange="previewEditFoto(this)">
+    </div>
     <div class="form-group"><label class="form-label">Categoría</label>
       <select class="form-select" id="edit-categoria">
         <option value="electrodomesticos">📺 Electrodomésticos</option>
@@ -822,10 +835,42 @@ async function enviarReporte(){
   showToast('✓ Reporte enviado, lo revisaremos pronto');
 }
 
+let editFotoFile = null;
+
+function previewEditFoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  const tipos = ['image/jpeg','image/jpg','image/png','image/webp'];
+  if(!tipos.includes(file.type)){ showToast('Solo JPG, PNG o WebP'); input.value=''; return; }
+  if(file.size > 5*1024*1024){ showToast('Máximo 5MB'); input.value=''; return; }
+  editFotoFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('edit-foto-preview-img').src = e.target.result;
+    document.getElementById('edit-foto-preview').style.display = 'block';
+    document.getElementById('edit-foto-placeholder').style.display = 'none';
+    document.getElementById('edit-foto-area').classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+}
+
 function abrirEditar(id){
   const a = anuncios.find(x=>x.id===id);
   if(!a) return;
   editandoId = id;
+  editFotoFile = null;
+  // Mostrar foto actual si existe
+  if(a.imagen_url){
+    document.getElementById('edit-foto-preview-img').src = a.imagen_url;
+    document.getElementById('edit-foto-preview').style.display = 'block';
+    document.getElementById('edit-foto-placeholder').style.display = 'none';
+    document.getElementById('edit-foto-area').classList.add('has-image');
+  } else {
+    document.getElementById('edit-foto-preview').style.display = 'none';
+    document.getElementById('edit-foto-placeholder').style.display = 'block';
+    document.getElementById('edit-foto-area').classList.remove('has-image');
+  }
+  document.getElementById('edit-foto-input').value = '';
   document.getElementById('edit-titulo').value = a.titulo || '';
   document.getElementById('edit-desc').value = a.descripcion || '';
   document.getElementById('edit-precio').value = a.precio || '';
@@ -847,7 +892,18 @@ async function guardarEdicion(){
   const btn = document.getElementById('btn-edit-submit');
   btn.disabled=true; btn.textContent='Guardando...';
   const monedaEdit = document.getElementById('edit-moneda').value || 'CUP';
-  const {error} = await sb.from('anuncios').update({titulo, descripcion:desc, precio:parseInt(precio), categoria, ciudad, moneda:monedaEdit}).eq('id', editandoId).eq('user_id', currentUser.id);
+  // Subir nueva foto si se seleccionó
+  let imagenUrl = anuncios.find(a=>a.id===editandoId)?.imagen_url || null;
+  if(editFotoFile){
+    const ext = editFotoFile.name.split('.').pop();
+    const path = currentUser.id+'/'+Date.now()+'.'+ext;
+    const {data:upData, error:upErr} = await sb.storage.from('anuncios').upload(path, editFotoFile, {cacheControl:'3600',upsert:false});
+    if(!upErr){
+      const {data:{publicUrl}} = sb.storage.from('anuncios').getPublicUrl(path);
+      imagenUrl = publicUrl;
+    }
+  }
+  const {error} = await sb.from('anuncios').update({titulo, descripcion:desc, precio:parseInt(precio), categoria, ciudad, moneda:monedaEdit, imagen_url:imagenUrl}).eq('id', editandoId).eq('user_id', currentUser.id);
   btn.disabled=false; btn.textContent='Guardar cambios';
   if(error){ showToast('Error al guardar'); return; }
   cerrarOverlay('overlay-editar');
