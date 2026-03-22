@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TuVenta — Compra y vende en Cuba</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:#f7f6f2;--surface:#fff;--surface2:#f0efe9;--border:#e8e6df;
+  --accent:#e63946;--accent2:#2d6a4f;--accent3:#f4a261;
+  --text:#1a1a1a;--text2:#666660;--text3:#aaa9a0;--radius:12px;
+  --font:'Figtree',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;overflow-x:hidden;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;width:100%;max-width:100vw;}
+
+/* NAV */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;padding:0 12px;height:52px;display:flex;align-items:center;gap:8px;width:100%;}
+.nav-logo{font-weight:800;font-size:1.2rem;color:var(--accent);letter-spacing:-0.5px;white-space:nowrap;flex-shrink:0;}
+.nav-logo span{color:var(--text2);font-weight:400;}
+.nav-search{flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:100px;padding:8px 14px;font-family:var(--font);font-size:16px;outline:none;color:var(--text);min-width:0;}
+.nav-search:focus{border-color:var(--accent);}
+.btn-publicar{background:var(--accent);color:white;border:none;border-radius:100px;padding:8px 14px;font-family:var(--font);font-weight:700;font-size:0.78rem;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.nav-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:white;font-weight:700;font-size:0.8rem;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.nav-btn-entrar{background:none;border:1px solid var(--border);color:var(--text2);border-radius:100px;padding:6px 10px;font-family:var(--font);font-weight:600;font-size:0.75rem;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+
+/* HERO — compacto */
+.hero-banner{background:var(--accent);color:white;padding:12px 16px;text-align:center;}
+.hero-banner h1{font-size:0.95rem;font-weight:700;margin-bottom:2px;}
+.hero-banner p{font-size:0.75rem;opacity:0.88;}
+
+/* CATEGORÍAS — scroll horizontal limpio sin desbordamiento */
+.cats-wrap{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.cats-wrap::-webkit-scrollbar{display:none;}
+.cats{display:flex;gap:6px;padding:0 12px;width:max-content;}
+.cat-pill{background:var(--surface2);border:1.5px solid var(--border);border-radius:100px;padding:6px 12px;font-size:0.76rem;font-weight:600;cursor:pointer;white-space:nowrap;color:var(--text2);display:flex;align-items:center;gap:4px;transition:all 0.2s;}
+.cat-pill.active{background:var(--accent);color:white;border-color:var(--accent);}
+
+/* MAIN */
+.main{width:100%;padding:12px;overflow-x:hidden;}
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.section-header h2{font-size:0.95rem;font-weight:700;}
+.ver-todo{font-size:0.78rem;color:var(--accent);font-weight:600;}
+
+/* GRID — 2 columnas fijas en móvil */
+.anuncios-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px;width:100%;}
+.anuncio-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;width:100%;}
+.anuncio-img{width:100%;aspect-ratio:1;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:2.2rem;position:relative;overflow:hidden;}
+.anuncio-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.badge-urgente{position:absolute;top:6px;left:6px;background:var(--accent);color:white;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:100px;}
+.anuncio-body{padding:8px;}
+.anuncio-precio{font-weight:800;font-size:0.95rem;color:var(--text);margin-bottom:2px;}
+.anuncio-precio span{font-size:0.65rem;font-weight:500;color:var(--text2);}
+.anuncio-titulo{font-size:0.78rem;color:var(--text2);margin-bottom:4px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.anuncio-meta{font-size:0.68rem;color:var(--text3);display:flex;align-items:center;gap:3px;}
+.anuncio-verificado{color:var(--accent2);font-size:0.68rem;font-weight:600;}
+
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;cursor:pointer;color:var(--text3);font-size:0.56rem;gap:2px;border:none;background:none;font-family:var(--font);font-weight:600;}
+.bnav-item.active{color:var(--accent);}
+.bnav-item svg{width:20px;height:20px;}
+.bnav-publicar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;cursor:pointer;border:none;background:none;}
+.bnav-publicar-btn{background:var(--accent);color:white;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(230,57,70,0.35);}
+.bnav-publicar-btn svg{width:20px;height:20px;}
+.content-pad{padding-bottom:80px;}
+
+/* DESKTOP */
+@media(min-width:600px){
+  .anuncios-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));}
+  .main{max-width:900px;margin:0 auto;padding:16px;}
+  .hero-banner h1{font-size:1.1rem;}
+  .hero-banner p{font-size:0.82rem;}
+}
+
+/* OVERLAY GENÉRICO - funciona con display flex */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.overlay.visible{display:flex;}
+/* MODALES BOTTOM SHEET */
+.overlay-bottom{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center;}
+.overlay-bottom.visible{display:flex;}
+
+.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
+.modal-title{font-size:1.1rem;font-weight:800;margin-bottom:20px;}
+.form-group{margin-bottom:14px;}
+.form-label{display:block;font-size:0.72rem;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.6px;}
+.form-input{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-family:var(--font);font-size:16px;outline:none;color:var(--text);transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--accent);}
+.form-select{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-family:var(--font);font-size:16px;outline:none;color:var(--text);appearance:none;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.foto-upload{border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:border-color 0.2s;}
+.foto-upload:hover{border-color:var(--accent);}
+.foto-upload.has-image{padding:0;border-style:solid;}
+.btn-submit{width:100%;background:var(--accent);color:white;border:none;border-radius:10px;padding:14px;font-family:var(--font);font-weight:700;font-size:1rem;cursor:pointer;margin-top:8px;transition:opacity 0.2s;}
+.btn-submit:hover{opacity:0.88;}
+.btn-submit:disabled{opacity:0.5;cursor:not-allowed;}
+.btn-cancel{width:100%;background:transparent;color:var(--text2);border:1.5px solid var(--border);border-radius:10px;padding:12px;font-family:var(--font);font-weight:600;font-size:0.9rem;cursor:pointer;margin-top:8px;}
+
+/* AUTH BOX - centrado */
+.auth-box{background:var(--surface);border-radius:20px;padding:28px 20px;width:calc(100% - 32px);max-width:380px;}
+.auth-logo{font-weight:800;font-size:1.4rem;color:var(--accent);text-align:center;margin-bottom:4px;}
+.auth-sub{text-align:center;color:var(--text2);font-size:0.82rem;margin-bottom:20px;}
+.auth-tabs{display:flex;background:var(--surface2);border-radius:10px;padding:3px;margin-bottom:20px;}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:700;color:var(--text2);border:none;background:none;font-family:var(--font);transition:all 0.2s;}
+.auth-tab.active{background:var(--surface);color:var(--text);}
+.auth-error{background:#fff0f0;border:1px solid #ffcccc;color:var(--accent);border-radius:8px;padding:8px 12px;font-size:0.8rem;margin-bottom:12px;display:none;}
+
+/* DETALLE */
+.detalle-img{width:100%;aspect-ratio:4/3;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:5rem;border-radius:12px;margin-bottom:16px;overflow:hidden;}
+.detalle-precio{font-size:1.8rem;font-weight:800;margin-bottom:4px;}
+.detalle-titulo{font-size:1rem;color:var(--text2);margin-bottom:12px;line-height:1.4;}
+.detalle-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.detalle-tag{background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:4px 10px;font-size:0.75rem;font-weight:600;color:var(--text2);}
+.detalle-vendedor{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.vendedor-avatar{width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1rem;flex-shrink:0;}
+.vendedor-name{font-weight:700;font-size:0.95rem;}
+.vendedor-meta{font-size:0.75rem;color:var(--text2);margin-top:2px;}
+.btn-whatsapp{width:100%;background:#25D366;color:white;border:none;border-radius:10px;padding:14px;font-family:var(--font);font-weight:700;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;text-decoration:none;}
+
+/* MIS ANUNCIOS */
+.mis-anuncios-list{display:flex;flex-direction:column;gap:10px;}
+.mis-anuncio-row{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.mis-anuncio-titulo{font-weight:600;font-size:0.9rem;margin-bottom:2px;}
+.mis-anuncio-meta{font-size:0.75rem;color:var(--text2);}
+.btn-eliminar{background:none;border:1px solid #ffcccc;color:var(--accent);border-radius:8px;padding:6px 12px;font-size:0.75rem;cursor:pointer;font-family:var(--font);font-weight:600;white-space:nowrap;}
+:root{--blue:#3b82f6;}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:white;padding:10px 20px;border-radius:20px;font-weight:600;font-size:0.85rem;opacity:0;transition:all 0.3s;z-index:500;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--text2);font-size:0.9rem;grid-column:1/-1;}
+
+@media(min-width:600px){
+  .anuncios-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));}
+  .main{padding:20px;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-logo">Tu<span>Venta</span></div>
+  <input class="nav-search" placeholder="🔍 Buscar..." id="search-input" oninput="filtrarAnuncios()">
+  <button class="btn-publicar" onclick="openPublicar()">+ Publicar</button>
+  <div id="nav-user-area"></div>
+</nav>
+
+<div class="hero-banner">
+  <h1>Compra y vende en Cuba 🇨🇺</h1>
+  <p>Miles de anuncios de particulares y negocios verificados</p>
+</div>
+
+<div class="cats-wrap">
+  <div class="cats">
+    <div class="cat-pill active" onclick="filtrarCat('todos',this)">🏠 Todo</div>
+    <div class="cat-pill" onclick="filtrarCat('electrodomesticos',this)">📺 Electrodomésticos</div>
+    <div class="cat-pill" onclick="filtrarCat('ropa',this)">👕 Ropa</div>
+    <div class="cat-pill" onclick="filtrarCat('alimentos',this)">🍎 Alimentos</div>
+    <div class="cat-pill" onclick="filtrarCat('servicios',this)">🔧 Servicios</div>
+    <div class="cat-pill" onclick="filtrarCat('vehiculos',this)">🚗 Vehículos</div>
+    <div class="cat-pill" onclick="filtrarCat('inmuebles',this)">🏡 Inmuebles</div>
+    <div class="cat-pill" onclick="filtrarCat('mipyme',this)">🏪 MIPYMEs</div>
+  </div>
+</div>
+
+<div class="main content-pad">
+  <div class="section-header">
+    <h2 id="section-titulo">Anuncios recientes</h2>
+    <span class="ver-todo" id="conteo"></span>
+  </div>
+  <div class="anuncios-grid" id="anuncios-grid">
+    <div class="empty-state">⏳ Cargando anuncios...</div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="bnav-item active" onclick="goScreen('inicio',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Inicio
+  </button>
+  <button class="bnav-item" onclick="goScreen('buscar',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Buscar
+  </button>
+  <button class="bnav-publicar" onclick="openPublicar()">
+    <div class="bnav-publicar-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+  </button>
+  <button class="bnav-item" onclick="goScreen('mis-anuncios',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Mis anuncios
+  </button>
+  <button class="bnav-item" onclick="goScreen('perfil',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Perfil
+  </button>
+</nav>
+
+<!-- OVERLAY AUTH (centrado) -->
+<div class="overlay" id="overlay-auth">
+  <div class="auth-box">
+    <div class="auth-logo">TuVenta</div>
+    <div class="auth-sub">Crea tu cuenta para publicar y gestionar tus anuncios</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login-btn" onclick="switchAuthTab('login')">Entrar</button>
+      <button class="auth-tab" id="tab-reg-btn" onclick="switchAuthTab('registro')">Registrarse</button>
+    </div>
+    <div class="auth-error" id="auth-error"></div>
+    <div id="tab-login">
+      <div class="form-group"><label class="form-label">WhatsApp o correo</label><input class="form-input" type="text" id="login-wa" placeholder="5 XXX XXXX"></div>
+      <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" type="password" id="login-pass" placeholder="••••••••"></div>
+      <button class="btn-submit" id="btn-login" onclick="doLogin()">Entrar →</button>
+    </div>
+    <div id="tab-registro" style="display:none">
+      <div class="form-group"><label class="form-label">Tu nombre</label><input class="form-input" type="text" id="reg-nombre" placeholder="¿Cómo te llaman?"></div>
+      <div class="form-group">
+        <label class="form-label">WhatsApp</label>
+        <div style="display:flex;gap:6px;">
+          <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-weight:700;color:var(--text2);white-space:nowrap;">+53</div>
+          <input class="form-input" type="tel" id="reg-wa" placeholder="5 XXX XXXX" style="flex:1;">
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" type="password" id="reg-pass" placeholder="Mínimo 6 caracteres"></div>
+      <button class="btn-submit" id="btn-registro" onclick="doRegistro()">Crear cuenta →</button>
+    </div>
+    <button class="btn-cancel" onclick="cerrarAuth()">Cancelar</button>
+  </div>
+</div>
+
+<!-- OVERLAY PUBLICAR (bottom sheet) -->
+<div class="overlay-bottom" id="overlay-publicar">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Publicar anuncio</div>
+    <div class="form-group">
+      <label class="form-label">Foto del producto</label>
+      <div class="foto-upload" id="foto-upload-area" onclick="document.getElementById('foto-input').click()">
+        <div id="foto-preview" style="display:none;width:100%;aspect-ratio:4/3;border-radius:8px;overflow:hidden;margin-bottom:0;">
+          <img id="foto-preview-img" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        <div id="foto-placeholder">
+          <div style="font-size:2rem;margin-bottom:8px;">📷</div>
+          <div style="font-size:0.82rem;color:var(--text2);">Toca para añadir una foto</div>
+          <div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">JPG o PNG, máximo 5MB</div>
+        </div>
+      </div>
+      <input type="file" id="foto-input" accept="image/*" style="display:none;" onchange="previewFoto(this)">
+    </div>
+    <div class="form-group"><label class="form-label">Categoría</label>
+      <select class="form-select" id="pub-categoria">
+        <option value="">Selecciona una categoría</option>
+        <option value="electrodomesticos">📺 Electrodomésticos</option>
+        <option value="ropa">👕 Ropa y calzado</option>
+        <option value="alimentos">🍎 Alimentos</option>
+        <option value="servicios">🔧 Servicios</option>
+        <option value="vehiculos">🚗 Vehículos</option>
+        <option value="inmuebles">🏡 Inmuebles</option>
+        <option value="mipyme">🏪 MIPYME / Negocio</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Título</label><input class="form-input" type="text" id="pub-titulo" placeholder="Ej: Ventilador de techo en buen estado"></div>
+    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-input" id="pub-desc" rows="3" placeholder="Describe tu producto o servicio..." style="resize:none;"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Precio (CUP)</label><input class="form-input" type="number" id="pub-precio" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Ciudad</label>
+        <select class="form-select" id="pub-ciudad">
+          <option value="">Ciudad</option>
+          <option>La Habana</option><option>Santiago de Cuba</option><option>Holguín</option>
+          <option>Camagüey</option><option>Santa Clara</option><option>Matanzas</option>
+          <option>Cienfuegos</option><option>Otra</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-submit" id="btn-pub-submit" onclick="publicarAnuncio()">Publicar gratis</button>
+    <button class="btn-cancel" onclick="cerrarPublicar()">Cancelar</button>
+  </div>
+</div>
+
+<!-- OVERLAY DETALLE (bottom sheet) -->
+<div class="overlay-bottom" id="overlay-detalle">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div id="detalle-contenido"></div>
+    <button class="btn-cancel" onclick="cerrarOverlay('overlay-detalle')">Cerrar</button>
+  </div>
+</div>
+
+<!-- OVERLAY MIS ANUNCIOS (bottom sheet) -->
+<div class="overlay-bottom" id="overlay-mis-anuncios">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Mis anuncios</div>
+    <div id="mis-anuncios-contenido"></div>
+    <button class="btn-cancel" onclick="cerrarOverlay('overlay-mis-anuncios')" style="margin-top:8px;">Cerrar</button>
+  </div>
+</div>
+
+<!-- OVERLAY EDITAR -->
+<div class="overlay-bottom" id="overlay-editar">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar anuncio</div>
+    <div class="form-group"><label class="form-label">Categoría</label>
+      <select class="form-select" id="edit-categoria">
+        <option value="electrodomesticos">📺 Electrodomésticos</option>
+        <option value="ropa">👕 Ropa y calzado</option>
+        <option value="alimentos">🍎 Alimentos</option>
+        <option value="servicios">🔧 Servicios</option>
+        <option value="vehiculos">🚗 Vehículos</option>
+        <option value="inmuebles">🏡 Inmuebles</option>
+        <option value="mipyme">🏪 MIPYME / Negocio</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Título</label><input class="form-input" type="text" id="edit-titulo"></div>
+    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-input" id="edit-desc" rows="3" style="resize:none;"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Precio (CUP)</label><input class="form-input" type="number" id="edit-precio"></div>
+      <div class="form-group"><label class="form-label">Ciudad</label>
+        <select class="form-select" id="edit-ciudad">
+          <option>La Habana</option><option>Santiago de Cuba</option><option>Holguín</option>
+          <option>Camagüey</option><option>Santa Clara</option><option>Matanzas</option>
+          <option>Cienfuegos</option><option>Otra</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-submit" id="btn-edit-submit" onclick="guardarEdicion()">Guardar cambios</button>
+    <button class="btn-cancel" onclick="cerrarOverlay('overlay-editar')">Cancelar</button>
+  </div>
+</div>
+
+<!-- OVERLAY REPORTAR -->
+<div class="overlay" id="overlay-reportar">
+  <div class="auth-box">
+    <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Reportar anuncio</div>
+    <div style="color:var(--text2);font-size:0.82rem;margin-bottom:16px;">¿Por qué quieres reportar este anuncio?</div>
+    <div class="form-group">
+      <select class="form-select" id="reporte-motivo">
+        <option value="">Selecciona un motivo</option>
+        <option value="fraude">🚨 Es un fraude o estafa</option>
+        <option value="spam">📢 Es spam o publicidad</option>
+        <option value="precio">💰 Precio abusivo o engañoso</option>
+        <option value="inapropiado">🔞 Contenido inapropiado</option>
+        <option value="duplicado">📋 Anuncio duplicado</option>
+        <option value="otro">❓ Otro motivo</option>
+      </select>
+    </div>
+    <button class="btn-submit" id="btn-reportar-submit" onclick="enviarReporte()">Enviar reporte</button>
+    <button class="btn-cancel" onclick="cerrarOverlay('overlay-reportar')">Cancelar</button>
+  </div>
+</div>
+
+<!-- OVERLAY REPORTAR -->
+<div class="overlay" id="overlay-reportar">
+  <div class="auth-box">
+    <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Reportar anuncio</div>
+    <div style="font-size:0.82rem;color:var(--text2);margin-bottom:20px;">¿Por qué quieres reportar este anuncio?</div>
+    <div class="form-group">
+      <label class="form-label">Motivo</label>
+      <select class="form-select" id="reporte-motivo">
+        <option value="">Selecciona un motivo</option>
+        <option value="fraude">💰 Es un fraude o estafa</option>
+        <option value="duplicado">📋 Anuncio duplicado</option>
+        <option value="precio_irreal">💸 Precio irreal o engañoso</option>
+        <option value="contacto_falso">📵 Contacto falso o no responde</option>
+        <option value="contenido_inapropiado">🚫 Contenido inapropiado</option>
+        <option value="otro">❓ Otro motivo</option>
+      </select>
+    </div>
+    <button class="btn-submit" id="btn-reporte-submit" onclick="enviarReporte()">Enviar reporte</button>
+    <button class="btn-cancel" onclick="cerrarOverlay('overlay-reportar')">Cancelar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SURL = 'https://wyuexqgrfigxegtcaigs.supabase.co';
+const SKEY = 'sb_publishable_sU8WGU9UZsowfEyQZDpB-w_sygzksNk';
+const sb = supabase.createClient(SURL, SKEY);
+
+const EMOJIS = {electrodomesticos:'📺',ropa:'👕',alimentos:'🍎',servicios:'🔧',vehiculos:'🚗',inmuebles:'🏡',mipyme:'🏪'};
+const CATS = {electrodomesticos:'Electrodomésticos',ropa:'Ropa y calzado',alimentos:'Alimentos',servicios:'Servicios',vehiculos:'Vehículos',inmuebles:'Inmuebles',mipyme:'MIPYMEs'};
+
+let currentUser = null;
+let currentPerfil = null;
+let anuncios = [];
+let catActual = 'todos';
+let busqueda = '';
+
+// ─── OVERLAYS ───────────────────────────────────────
+function abrirOverlay(id){ document.getElementById(id).classList.add('visible'); }
+function cerrarOverlay(id){ document.getElementById(id).classList.remove('visible'); }
+
+function cerrarAuth(){
+  cerrarOverlay('overlay-auth');
+  document.getElementById('auth-error').style.display = 'none';
+}
+function cerrarPublicar(){
+  cerrarOverlay('overlay-publicar');
+  fotoFile = null;
+  document.getElementById('foto-preview').style.display='none';
+  document.getElementById('foto-placeholder').style.display='block';
+  document.getElementById('foto-upload-area').classList.remove('has-image');
+  document.getElementById('foto-input').value='';
+}
+
+// ─── NAV USER ────────────────────────────────────────
+function actualizarNavUser(){
+  const area = document.getElementById('nav-user-area');
+  if(currentUser && currentPerfil){
+    const inicial = (currentPerfil.nombre||'U').charAt(0).toUpperCase();
+    area.innerHTML = `<div class="nav-avatar" onclick="openMenuPerfil()" title="Mi perfil">${inicial}</div>`;
+  } else {
+    area.innerHTML = `<button class="nav-btn-entrar" onclick="abrirOverlay('overlay-auth')">Entrar</button>`;
+  }
+}
+
+// ─── AUTH ────────────────────────────────────────────
+function switchAuthTab(tab){
+  document.getElementById('tab-login').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('tab-registro').style.display = tab==='registro' ? 'block' : 'none';
+  document.getElementById('tab-login-btn').classList.toggle('active', tab==='login');
+  document.getElementById('tab-reg-btn').classList.toggle('active', tab==='registro');
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+function mostrarAuthError(msg){
+  const e = document.getElementById('auth-error');
+  e.textContent = msg; e.style.display = 'block';
+}
+
+function waToEmail(wa){
+  const digits = wa.replace(/[^0-9]/g,'');
+  if(digits.length >= 7){
+    const num = digits.startsWith('53') ? digits : '53'+digits;
+    return num + '@tuventa.cu';
+  }
+  return wa; // asumir que es correo real
+}
+
+async function doLogin(){
+  const wa = document.getElementById('login-wa').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if(!wa||!pass) return mostrarAuthError('Completa todos los campos');
+  const btn = document.getElementById('btn-login');
+  btn.disabled=true; btn.textContent='Entrando...';
+  const email = waToEmail(wa);
+  const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
+  btn.disabled=false; btn.textContent='Entrar →';
+  if(error){
+    const m = error.message||'';
+    if(m.includes('Invalid')||m.includes('credentials')) return mostrarAuthError('Número o contraseña incorrectos');
+    return mostrarAuthError('Error al entrar. Intenta de nuevo.');
+  }
+  currentUser = data.user;
+  currentPerfil = await fetchPerfil(currentUser.id);
+  actualizarNavUser();
+  cerrarAuth();
+  showToast('✓ Bienvenido a TuVenta');
+}
+
+async function doRegistro(){
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const wa = document.getElementById('reg-wa').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  if(!nombre||!wa||!pass) return mostrarAuthError('Completa todos los campos');
+  if(pass.length<6) return mostrarAuthError('La contraseña debe tener al menos 6 caracteres');
+  const digits = wa.replace(/[^0-9]/g,'');
+  if(digits.length < 7) return mostrarAuthError('Número de WhatsApp inválido');
+  // Verificar duplicado
+  const {data:existe} = await sb.from('perfiles').select('id').eq('whatsapp',digits).maybeSingle();
+  if(existe) return mostrarAuthError('Este número ya tiene una cuenta. Entra con tu número y contraseña.');
+  const email = '53'+digits+'@tuventa.cu';
+  const btn = document.getElementById('btn-registro');
+  btn.disabled=true; btn.textContent='Creando cuenta...';
+  const {data, error} = await sb.auth.signUp({email, password:pass});
+  btn.disabled=false; btn.textContent='Crear cuenta →';
+  if(error){
+    const m = error.message||'';
+    if(m.includes('already')) return mostrarAuthError('Este número ya tiene una cuenta.');
+    return mostrarAuthError('Error al crear cuenta. Intenta de nuevo.');
+  }
+  if(!data.user) return mostrarAuthError('Este número ya tiene una cuenta.');
+  await sb.from('perfiles').upsert({id:data.user.id, nombre, whatsapp:digits, whatsapp_unique:digits, ciudad:''});
+  currentUser = data.user;
+  currentPerfil = await fetchPerfil(currentUser.id);
+  actualizarNavUser();
+  cerrarAuth();
+  showToast('✓ Cuenta creada, bienvenido a TuVenta');
+}
+
+async function fetchPerfil(userId){
+  const {data} = await sb.from('perfiles').select('*').eq('id',userId).single();
+  return data || null;
+}
+
+function openMenuPerfil(){
+  if(!currentUser) return abrirOverlay('overlay-auth');
+  const nombre = currentPerfil?.nombre || 'Mi perfil';
+  if(confirm(`${nombre} — ¿Cerrar sesión?`)) doLogout();
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser = null; currentPerfil = null;
+  actualizarNavUser();
+  showToast('Sesión cerrada');
+}
+
+// ─── ANUNCIOS ────────────────────────────────────────
+async function cargarAnuncios(){
+  const {data, error} = await sb.from('anuncios').select('*').eq('activo',true).order('created_at',{ascending:false}).limit(200);
+  if(error){ console.error('Error:', error.message); }
+  anuncios = data || [];
+  renderAnuncios();
+}
+
+function renderAnuncios(){
+  let lista = anuncios;
+  if(catActual !== 'todos') lista = lista.filter(a=>a.categoria===catActual);
+  if(busqueda){
+    const q = busqueda.toLowerCase();
+    lista = lista.filter(a=> a.titulo.toLowerCase().includes(q) || (a.descripcion||'').toLowerCase().includes(q) || a.ciudad.toLowerCase().includes(q));
+  }
+  const grid = document.getElementById('anuncios-grid');
+  document.getElementById('conteo').textContent = lista.length+' anuncio'+(lista.length!==1?'s':'');
+  document.getElementById('section-titulo').textContent = catActual==='todos' ? 'Anuncios recientes' : (CATS[catActual]||'Anuncios');
+  if(!lista.length){
+    grid.innerHTML='<div class="empty-state"><div style="font-size:3rem;margin-bottom:12px">🔍</div><div style="font-weight:700">No hay anuncios aquí todavía</div><div style="font-size:0.85rem;margin-top:4px">Sé el primero en publicar</div></div>';
+    return;
+  }
+  grid.innerHTML = lista.map(a=>`
+    <div class="anuncio-card" onclick="verDetalle(${a.id})">
+      <div class="anuncio-img">
+        ${a.urgente?'<span class="badge-urgente">URGENTE</span>':''}
+        ${a.imagen_url ? `<img src="${a.imagen_url}" alt="${a.titulo}" loading="lazy">` : (EMOJIS[a.categoria]||'📦')}
+      </div>
+      <div class="anuncio-body">
+        <div class="anuncio-precio">${Number(a.precio).toLocaleString()} <span>CUP</span></div>
+        <div class="anuncio-titulo">${a.titulo}</div>
+        <div class="anuncio-meta">📍 ${a.ciudad} ${a.verificado?'<span class="anuncio-verificado">✓</span>':''}</div>
+      </div>
+    </div>`).join('');
+}
+
+function filtrarCat(cat, el){
+  catActual = cat;
+  document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderAnuncios();
+}
+
+function filtrarAnuncios(){
+  busqueda = document.getElementById('search-input').value;
+  renderAnuncios();
+}
+
+function verDetalle(id){
+  if(!currentUser){ abrirOverlay('overlay-auth'); return; }
+  const a = anuncios.find(x=>x.id===id);
+  if(!a) return;
+  const nombre = a.nombre_vendedor || 'Vendedor';
+  const desc = a.descripcion || '';
+  const waDigits = (a.whatsapp||'').replace(/[^0-9]/g,'');
+  const wa = waDigits.startsWith('53') ? waDigits : '53'+waDigits;
+  const msg = encodeURIComponent(`Hola ${nombre}, vi tu anuncio en TuVenta: "${a.titulo}" a ${Number(a.precio).toLocaleString()} CUP. ¿Está disponible?`);
+  const fecha = a.created_at ? new Date(a.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short'}) : '';
+  document.getElementById('detalle-contenido').innerHTML = `
+    <div class="detalle-img">${a.imagen_url ? `<img src="${a.imagen_url}" alt="${a.titulo}" style="width:100%;height:100%;object-fit:cover;">` : (EMOJIS[a.categoria]||'📦')}</div>
+    <div class="detalle-precio">${Number(a.precio).toLocaleString()} CUP</div>
+    <div class="detalle-titulo">${a.titulo}</div>
+    <div class="detalle-tags">
+      <span class="detalle-tag">${EMOJIS[a.categoria]||''} ${CATS[a.categoria]||a.categoria}</span>
+      <span class="detalle-tag">📍 ${a.ciudad}</span>
+      ${a.verificado?'<span class="detalle-tag" style="color:var(--accent2)">✓ Verificado</span>':''}
+      ${a.urgente?'<span class="detalle-tag" style="color:var(--accent)">🔥 Urgente</span>':''}
+      ${fecha?`<span class="detalle-tag">📅 ${fecha}</span>`:''}
+    </div>
+    <div class="detalle-vendedor">
+      <div class="vendedor-avatar">${nombre.charAt(0).toUpperCase()}</div>
+      <div>
+        <div class="vendedor-name">${nombre}</div>
+        <div class="vendedor-meta">Vendedor en TuVenta</div>
+      </div>
+    </div>
+    ${desc?`<div style="font-size:0.9rem;color:var(--text2);line-height:1.6;margin-bottom:16px;">${desc}</div>`:''}
+    <a href="https://wa.me/${wa}?text=${msg}" target="_blank" class="btn-whatsapp">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Contactar por WhatsApp
+    </a>
+    <button onclick="abrirReporte(${a.id})" style="width:100%;background:none;border:1px solid var(--border);color:var(--text2);border-radius:10px;padding:11px;font-family:var(--font);font-weight:600;font-size:0.85rem;cursor:pointer;margin-top:4px;">🚩 Reportar este anuncio</button>`;
+  abrirOverlay('overlay-detalle');
+}
+
+// ─── PUBLICAR ────────────────────────────────────────
+let fotoFile = null;
+let editandoId = null;
+let reportandoId = null;
+
+function abrirReportar(id){
+  reportandoId = id;
+  document.getElementById('reporte-motivo').value = '';
+  cerrarOverlay('overlay-detalle');
+  abrirOverlay('overlay-reportar');
+}
+
+async function enviarReporte(){
+  const motivo = document.getElementById('reporte-motivo').value;
+  if(!motivo) return showToast('Selecciona un motivo');
+  const btn = document.getElementById('btn-reporte-submit');
+  btn.disabled=true; btn.textContent='Enviando...';
+  const {error} = await sb.from('reportes').insert({
+    anuncio_id: reportandoId,
+    user_id: currentUser.id,
+    motivo
+  });
+  btn.disabled=false; btn.textContent='Enviar reporte';
+  if(error){ showToast('Error al enviar el reporte'); return; }
+  cerrarOverlay('overlay-reportar');
+  showToast('✓ Reporte enviado, lo revisaremos pronto');
+}
+let reportandoId = null;
+
+function abrirReporte(id){
+  reportandoId = id;
+  document.getElementById('reporte-motivo').value = '';
+  cerrarOverlay('overlay-detalle');
+  abrirOverlay('overlay-reportar');
+}
+
+async function enviarReporte(){
+  const motivo = document.getElementById('reporte-motivo').value;
+  if(!motivo) return showToast('Selecciona un motivo');
+  const btn = document.getElementById('btn-reportar-submit');
+  btn.disabled=true; btn.textContent='Enviando...';
+  const {error} = await sb.from('reportes').insert({
+    anuncio_id: reportandoId,
+    user_id: currentUser.id,
+    motivo
+  });
+  btn.disabled=false; btn.textContent='Enviar reporte';
+  if(error){ showToast('Error al enviar el reporte'); return; }
+  cerrarOverlay('overlay-reportar');
+  showToast('✓ Reporte enviado, lo revisaremos pronto');
+}
+
+function abrirEditar(id){
+  const a = anuncios.find(x=>x.id===id);
+  if(!a) return;
+  editandoId = id;
+  document.getElementById('edit-titulo').value = a.titulo || '';
+  document.getElementById('edit-desc').value = a.descripcion || '';
+  document.getElementById('edit-precio').value = a.precio || '';
+  document.getElementById('edit-categoria').value = a.categoria || '';
+  document.getElementById('edit-ciudad').value = a.ciudad || '';
+  cerrarOverlay('overlay-mis-anuncios');
+  abrirOverlay('overlay-editar');
+}
+
+async function guardarEdicion(){
+  const titulo = document.getElementById('edit-titulo').value.trim();
+  const desc = document.getElementById('edit-desc').value.trim();
+  const precio = document.getElementById('edit-precio').value;
+  const categoria = document.getElementById('edit-categoria').value;
+  const ciudad = document.getElementById('edit-ciudad').value;
+  if(!titulo) return showToast('Escribe un título');
+  if(!precio) return showToast('Pon el precio');
+  const btn = document.getElementById('btn-edit-submit');
+  btn.disabled=true; btn.textContent='Guardando...';
+  const {error} = await sb.from('anuncios').update({titulo, descripcion:desc, precio:parseInt(precio), categoria, ciudad}).eq('id', editandoId).eq('user_id', currentUser.id);
+  btn.disabled=false; btn.textContent='Guardar cambios';
+  if(error){ showToast('Error al guardar'); return; }
+  cerrarOverlay('overlay-editar');
+  await cargarAnuncios();
+  showToast('✓ Anuncio actualizado');
+}
+
+function previewFoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 5*1024*1024){ showToast('La foto no puede pesar más de 5MB'); return; }
+  fotoFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('foto-preview-img').src = e.target.result;
+    document.getElementById('foto-preview').style.display = 'block';
+    document.getElementById('foto-placeholder').style.display = 'none';
+    document.getElementById('foto-upload-area').classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function subirFoto(userId){
+  if(!fotoFile) return null;
+  const ext = fotoFile.name.split('.').pop();
+  const path = `${userId}/${Date.now()}.${ext}`;
+  const {data, error} = await sb.storage.from('anuncios').upload(path, fotoFile, {cacheControl:'3600',upsert:false});
+  if(error){ console.error('Error subiendo foto:', error); return null; }
+  const {data:{publicUrl}} = sb.storage.from('anuncios').getPublicUrl(path);
+  return publicUrl;
+}
+
+async function openPublicar(){
+  if(!currentUser){
+    abrirOverlay('overlay-auth');
+    return;
+  }
+  abrirOverlay('overlay-publicar');
+}
+
+async function publicarAnuncio(){
+  const titulo = document.getElementById('pub-titulo').value.trim();
+  const categoria = document.getElementById('pub-categoria').value;
+  const precio = document.getElementById('pub-precio').value;
+  const ciudad = document.getElementById('pub-ciudad').value;
+  const desc = document.getElementById('pub-desc').value.trim();
+  if(!titulo) return showToast('Escribe un título');
+  if(!categoria) return showToast('Selecciona una categoría');
+  if(!precio) return showToast('Pon el precio');
+  if(!ciudad) return showToast('Selecciona tu ciudad');
+  const wa = currentPerfil ? '53'+(currentPerfil.whatsapp||'').replace(/[^0-9]/g,'').replace(/^53/,'') : '';
+  const nombre = currentPerfil?.nombre || '';
+  const btn = document.getElementById('btn-pub-submit');
+  btn.disabled=true; btn.textContent='Subiendo foto...';
+  const imagenUrl = await subirFoto(currentUser.id);
+  btn.textContent='Publicando...';
+  const {error} = await sb.from('anuncios').insert({
+    titulo, descripcion:desc, precio:parseInt(precio), categoria, ciudad,
+    whatsapp:wa, nombre_vendedor:nombre,
+    verificado:false, urgente:false, activo:true,
+    user_id: currentUser.id,
+    imagen_url: imagenUrl
+  });
+  btn.disabled=false; btn.textContent='Publicar gratis';
+  if(error){ showToast('Error al publicar: '+error.message); return; }
+  cerrarPublicar();
+  document.getElementById('pub-titulo').value='';
+  document.getElementById('pub-desc').value='';
+  document.getElementById('pub-precio').value='';
+  document.getElementById('pub-categoria').value='';
+  document.getElementById('pub-ciudad').value='';
+  await cargarAnuncios();
+  showToast('✓ Anuncio publicado');
+}
+
+// ─── MIS ANUNCIOS ────────────────────────────────────
+async function verMisAnuncios(){
+  if(!currentUser){ abrirOverlay('overlay-auth'); return; }
+  const {data} = await sb.from('anuncios').select('*').eq('user_id',currentUser.id).eq('activo',true).order('created_at',{ascending:false});
+  const cont = document.getElementById('mis-anuncios-contenido');
+  if(!data||!data.length){
+    cont.innerHTML='<div style="text-align:center;padding:30px;color:var(--text2)"><div style="font-size:2rem;margin-bottom:8px">📭</div><div>No tienes anuncios publicados</div></div>';
+  } else {
+    cont.innerHTML=`<div class="mis-anuncios-list">${data.map(a=>`
+      <div class="mis-anuncio-row">
+        <div>
+          <div class="mis-anuncio-titulo">${a.titulo}</div>
+          <div class="mis-anuncio-meta">${Number(a.precio).toLocaleString()} CUP · ${a.ciudad}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-eliminar" style="color:var(--blue,#3b82f6);border-color:var(--blue,#3b82f6);" onclick="abrirEditar(${a.id})">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarAnuncio(${a.id})">Eliminar</button>
+        </div>
+      </div>`).join('')}</div>`;
+  }
+  abrirOverlay('overlay-mis-anuncios');
+}
+
+async function eliminarAnuncio(id){
+  if(!confirm('¿Eliminar este anuncio?')) return;
+  const {error} = await sb.from('anuncios').delete().eq('id',id).eq('user_id',currentUser.id);
+  if(error){ showToast('Error al eliminar'); return; }
+  showToast('✓ Anuncio eliminado');
+  cerrarOverlay('overlay-mis-anuncios');
+  await cargarAnuncios();
+}
+
+// ─── NAV ─────────────────────────────────────────────
+function goScreen(screen, btn){
+  document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(screen==='buscar') document.getElementById('search-input').focus();
+  else if(screen==='mis-anuncios') verMisAnuncios();
+  else if(screen==='perfil'){
+    if(currentUser) openMenuPerfil();
+    else abrirOverlay('overlay-auth');
+  }
+}
+
+// ─── TOAST ───────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ─── INIT ────────────────────────────────────────────
+async function init(){
+  // Cargar anuncios primero — no depende de sesión
+  await cargarAnuncios();
+  // Luego cargar sesión
+  try{
+    const {data:{session}} = await sb.auth.getSession();
+    if(session?.user){
+      currentUser = session.user;
+      currentPerfil = await fetchPerfil(currentUser.id);
+    }
+  }catch(e){ console.error('Sesión:', e); }
+  actualizarNavUser();
+}
+
+init();
+</script>
+</body>
+</html>
