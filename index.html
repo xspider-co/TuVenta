@@ -146,7 +146,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <nav class="nav">
   <div class="nav-logo">Tu<span>Venta</span></div>
-  <input class="nav-search" placeholder="🔍 Buscar..." id="search-input" oninput="filtrarAnuncios()">
+  <input class="nav-search" placeholder="🔍 Buscar..." id="search-input" oninput="filtrarAnuncios()" autocomplete="off" autocorrect="off" autocapitalize="off">
   <button class="btn-publicar" onclick="openPublicar()">+ Publicar</button>
   <div id="nav-user-area"></div>
 </nav>
@@ -659,10 +659,12 @@ function filtrarAnuncios(){
   renderAnuncios();
 }
 
-function verDetalle(id){
+async function verDetalle(id){
   if(!currentUser){ abrirOverlay('overlay-auth'); return; }
+  // Si anuncios está vacío recargar antes de buscar
+  if(!anuncios.length) await cargarAnuncios();
   const a = anuncios.find(x=>x.id===id);
-  if(!a) return;
+  if(!a){ showToast('Anuncio no disponible'); return; }
   const nombre = a.nombre_vendedor || 'Vendedor';
   const desc = a.descripcion || '';
   const waDigits = (a.whatsapp||'').replace(/[^0-9]/g,'');
@@ -919,6 +921,10 @@ async function init(){
   actualizarNavUser();
   // Luego cargar anuncios
   await cargarAnuncios();
+  // Limpiar búsqueda al iniciar — evitar autocompletado del navegador
+  const searchEl = document.getElementById('search-input');
+  if(searchEl) searchEl.value = '';
+  busqueda = '';
   // Restaurar ciudad guardada
   const ciudadGuardada = localStorage.getItem('tv_ciudad');
   if(ciudadGuardada){
