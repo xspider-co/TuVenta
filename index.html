@@ -127,6 +127,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .mis-anuncio-titulo{font-weight:600;font-size:0.9rem;margin-bottom:2px;}
 .mis-anuncio-meta{font-size:0.75rem;color:var(--text2);}
 .btn-eliminar{background:none;border:1px solid #ffcccc;color:var(--accent);border-radius:8px;padding:6px 12px;font-size:0.75rem;cursor:pointer;font-family:var(--font);font-weight:600;white-space:nowrap;}
+:root{--blue:#3b82f6;}
 
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:white;padding:10px 20px;border-radius:20px;font-weight:600;font-size:0.85rem;opacity:0;transition:all 0.3s;z-index:500;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -292,6 +293,39 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="modal-title">Mis anuncios</div>
     <div id="mis-anuncios-contenido"></div>
     <button class="btn-cancel" onclick="cerrarOverlay('overlay-mis-anuncios')" style="margin-top:8px;">Cerrar</button>
+  </div>
+</div>
+
+<!-- OVERLAY EDITAR -->
+<div class="overlay-bottom" id="overlay-editar">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar anuncio</div>
+    <div class="form-group"><label class="form-label">Categoría</label>
+      <select class="form-select" id="edit-categoria">
+        <option value="electrodomesticos">📺 Electrodomésticos</option>
+        <option value="ropa">👕 Ropa y calzado</option>
+        <option value="alimentos">🍎 Alimentos</option>
+        <option value="servicios">🔧 Servicios</option>
+        <option value="vehiculos">🚗 Vehículos</option>
+        <option value="inmuebles">🏡 Inmuebles</option>
+        <option value="mipyme">🏪 MIPYME / Negocio</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Título</label><input class="form-input" type="text" id="edit-titulo"></div>
+    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-input" id="edit-desc" rows="3" style="resize:none;"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Precio (CUP)</label><input class="form-input" type="number" id="edit-precio"></div>
+      <div class="form-group"><label class="form-label">Ciudad</label>
+        <select class="form-select" id="edit-ciudad">
+          <option>La Habana</option><option>Santiago de Cuba</option><option>Holguín</option>
+          <option>Camagüey</option><option>Santa Clara</option><option>Matanzas</option>
+          <option>Cienfuegos</option><option>Otra</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-submit" id="btn-edit-submit" onclick="guardarEdicion()">Guardar cambios</button>
+    <button class="btn-cancel" onclick="cerrarOverlay('overlay-editar')">Cancelar</button>
   </div>
 </div>
 
@@ -517,6 +551,38 @@ function verDetalle(id){
 
 // ─── PUBLICAR ────────────────────────────────────────
 let fotoFile = null;
+let editandoId = null;
+
+function abrirEditar(id){
+  const a = anuncios.find(x=>x.id===id);
+  if(!a) return;
+  editandoId = id;
+  document.getElementById('edit-titulo').value = a.titulo || '';
+  document.getElementById('edit-desc').value = a.descripcion || '';
+  document.getElementById('edit-precio').value = a.precio || '';
+  document.getElementById('edit-categoria').value = a.categoria || '';
+  document.getElementById('edit-ciudad').value = a.ciudad || '';
+  cerrarOverlay('overlay-mis-anuncios');
+  abrirOverlay('overlay-editar');
+}
+
+async function guardarEdicion(){
+  const titulo = document.getElementById('edit-titulo').value.trim();
+  const desc = document.getElementById('edit-desc').value.trim();
+  const precio = document.getElementById('edit-precio').value;
+  const categoria = document.getElementById('edit-categoria').value;
+  const ciudad = document.getElementById('edit-ciudad').value;
+  if(!titulo) return showToast('Escribe un título');
+  if(!precio) return showToast('Pon el precio');
+  const btn = document.getElementById('btn-edit-submit');
+  btn.disabled=true; btn.textContent='Guardando...';
+  const {error} = await sb.from('anuncios').update({titulo, descripcion:desc, precio:parseInt(precio), categoria, ciudad}).eq('id', editandoId).eq('user_id', currentUser.id);
+  btn.disabled=false; btn.textContent='Guardar cambios';
+  if(error){ showToast('Error al guardar'); return; }
+  cerrarOverlay('overlay-editar');
+  await cargarAnuncios();
+  showToast('✓ Anuncio actualizado');
+}
 
 function previewFoto(input){
   const file = input.files[0];
@@ -600,7 +666,10 @@ async function verMisAnuncios(){
           <div class="mis-anuncio-titulo">${a.titulo}</div>
           <div class="mis-anuncio-meta">${Number(a.precio).toLocaleString()} CUP · ${a.ciudad}</div>
         </div>
-        <button class="btn-eliminar" onclick="eliminarAnuncio(${a.id})">Eliminar</button>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-eliminar" style="color:var(--blue,#3b82f6);border-color:var(--blue,#3b82f6);" onclick="abrirEditar(${a.id})">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarAnuncio(${a.id})">Eliminar</button>
+        </div>
       </div>`).join('')}</div>`;
   }
   abrirOverlay('overlay-mis-anuncios');
