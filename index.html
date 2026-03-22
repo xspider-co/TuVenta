@@ -721,7 +721,7 @@ function filtrarAnuncios(){
   busqueda = document.getElementById('search-input').value;
   ciudadActual = document.getElementById('filtro-ciudad')?.value || '';
   // Guardar ciudad en localStorage
-  if(ciudadActual) localStorage.setItem('tv_ciudad', ciudadActual);
+
   paginaActual = 1;
   renderAnuncios();
 }
@@ -997,12 +997,7 @@ async function init(){
   const searchEl = document.getElementById('search-input');
   if(searchEl) searchEl.value = '';
   busqueda = '';
-  // Restaurar ciudad guardada
-  const ciudadGuardada = localStorage.getItem('tv_ciudad');
-  if(ciudadGuardada){
-    const sel = document.getElementById('filtro-ciudad');
-    if(sel){ sel.value = ciudadGuardada; ciudadActual = ciudadGuardada; renderAnuncios(); }
-  }
+  ciudadActual = '';
 }
 
 init();
