@@ -385,17 +385,22 @@ let currentUser = null;
 let currentPerfil = null;
 
 // AUTH
+async function cargarPerfil(userId){
+  const {data} = await sb.from('perfiles').select('*').eq('id', userId).single();
+  currentPerfil = data;
+  actualizarNavUser();
+  if(currentPerfil){
+    const waInput = document.getElementById('pub-whatsapp');
+    const nomInput = document.getElementById('pub-nombre');
+    if(waInput) waInput.value = currentPerfil.whatsapp || '';
+    if(nomInput) nomInput.value = currentPerfil.nombre || '';
+  }
+}
+
 sb.auth.onAuthStateChange(async (event, session) => {
   currentUser = session?.user || null;
   if(currentUser){
-    const {data} = await sb.from('perfiles').select('*').eq('id', currentUser.id).single();
-    currentPerfil = data;
-    actualizarNavUser();
-    // Pre-rellenar formulario con datos del perfil
-    if(currentPerfil){
-      if(document.getElementById('pub-whatsapp')) document.getElementById('pub-whatsapp').value = currentPerfil.whatsapp || '';
-      if(document.getElementById('pub-nombre')) document.getElementById('pub-nombre').value = currentPerfil.nombre || '';
-    }
+    await cargarPerfil(currentUser.id);
   } else {
     currentPerfil = null;
     actualizarNavUser();
@@ -459,6 +464,8 @@ async function doLogin(){
       return showAuthError('Cuenta pendiente de activación.');
     return showAuthError('Error al entrar. Intenta de nuevo.');
   }
+  currentUser = data.user;
+  await cargarPerfil(currentUser.id);
   closeModal('auth-overlay');
   showToast('✓ Bienvenido a TuVenta');
 }
@@ -501,6 +508,8 @@ async function doRegistro(){
     await sb.from('perfiles').upsert({id:data.user.id, nombre, whatsapp: waLimpio, whatsapp_unique: waLimpio, ciudad:''});
   }
   btn.disabled=false; btn.textContent='Crear cuenta →';
+  currentUser = data.user;
+  await cargarPerfil(currentUser.id);
   closeModal('auth-overlay');
   showToast('✓ Cuenta creada, bienvenido a TuVenta');
 }
