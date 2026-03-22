@@ -466,7 +466,7 @@ async function doLogin(){
   }
   currentUser = data.user;
   await cargarPerfil(currentUser.id);
-  closeModal('auth-overlay');
+  document.getElementById('auth-overlay').classList.remove('open');
   showToast('✓ Bienvenido a TuVenta');
 }
 
@@ -510,7 +510,7 @@ async function doRegistro(){
   btn.disabled=false; btn.textContent='Crear cuenta →';
   currentUser = data.user;
   await cargarPerfil(currentUser.id);
-  closeModal('auth-overlay');
+  document.getElementById('auth-overlay').classList.remove('open');
   showToast('✓ Cuenta creada, bienvenido a TuVenta');
 }
 
@@ -545,18 +545,11 @@ async function cargarAnuncios(){
   mostrarLoading(true);
   const { data, error } = await sb
     .from('anuncios')
-    .select('*, perfiles(nombre, whatsapp, verificado)')
+    .select('*')
     .eq('activo', true)
     .order('created_at', { ascending: false });
-  if(!error && data){
-    // Mezclar nombre del perfil con el anuncio
-    anuncios = data.map(a => ({
-      ...a,
-      nombre_vendedor: a.perfiles?.nombre || a.nombre_vendedor || 'Vendedor',
-      whatsapp: a.perfiles?.whatsapp || a.whatsapp || '',
-      verificado: a.perfiles?.verificado || a.verificado || false
-    }));
-  }
+  if(error){ console.error('Error cargando anuncios:', JSON.stringify(error)); }
+  if(data) anuncios = data;
   mostrarLoading(false);
   renderAnuncios();
 }
@@ -670,7 +663,8 @@ async function openPublicar(){
 }
 
 function closeModal(id){
-  document.getElementById(id).classList.remove('open');
+  const el = document.getElementById(id);
+  if(el) el.classList.remove('open');
 }
 
 async function publicarAnuncio(){
@@ -718,8 +712,15 @@ async function publicarAnuncio(){
     if(el) el.value = '';
   });
 
+  closeModal('modal-publicar');
+  // Limpiar formulario
+  ['pub-titulo','pub-desc','pub-precio'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  const catEl=document.getElementById('pub-categoria');if(catEl)catEl.value='';
+  const civEl=document.getElementById('pub-ciudad');if(civEl)civEl.value='';
   await cargarAnuncios();
-  showToast('✓ Anuncio publicado correctamente');
+  showToast('✓ Anuncio publicado');
 }
 
 function openMenuPerfil(){
