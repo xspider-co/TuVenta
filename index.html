@@ -49,6 +49,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .anuncios-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px;width:100%;}
 .anuncio-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;width:100%;}
 .anuncio-img{width:100%;aspect-ratio:1;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:2.2rem;position:relative;overflow:hidden;}
+.anuncio-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
 .badge-urgente{position:absolute;top:6px;left:6px;background:var(--accent);color:white;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:100px;}
 .anuncio-body{padding:8px;}
 .anuncio-precio{font-weight:800;font-size:0.95rem;color:var(--text);margin-bottom:2px;}
@@ -91,7 +92,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .form-input:focus{border-color:var(--accent);}
 .form-select{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-family:var(--font);font-size:16px;outline:none;color:var(--text);appearance:none;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.foto-upload{border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;}
+.foto-upload{border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:border-color 0.2s;}
+.foto-upload:hover{border-color:var(--accent);}
+.foto-upload.has-image{padding:0;border-style:solid;}
 .btn-submit{width:100%;background:var(--accent);color:white;border:none;border-radius:10px;padding:14px;font-family:var(--font);font-weight:700;font-size:1rem;cursor:pointer;margin-top:8px;transition:opacity 0.2s;}
 .btn-submit:hover{opacity:0.88;}
 .btn-submit:disabled{opacity:0.5;cursor:not-allowed;}
@@ -230,11 +233,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="modal-handle"></div>
     <div class="modal-title">Publicar anuncio</div>
     <div class="form-group">
-      <label class="form-label">Fotos</label>
-      <div class="foto-upload" onclick="showToast('📸 Próximamente: subir fotos')">
-        <div style="font-size:2rem;margin-bottom:8px;">📷</div>
-        <div style="font-size:0.82rem;color:var(--text2);">Toca para añadir fotos</div>
+      <label class="form-label">Foto del producto</label>
+      <div class="foto-upload" id="foto-upload-area" onclick="document.getElementById('foto-input').click()">
+        <div id="foto-preview" style="display:none;width:100%;aspect-ratio:4/3;border-radius:8px;overflow:hidden;margin-bottom:0;">
+          <img id="foto-preview-img" style="width:100%;height:100%;object-fit:cover;">
+        </div>
+        <div id="foto-placeholder">
+          <div style="font-size:2rem;margin-bottom:8px;">📷</div>
+          <div style="font-size:0.82rem;color:var(--text2);">Toca para añadir una foto</div>
+          <div style="font-size:0.72rem;color:var(--text3);margin-top:4px;">JPG o PNG, máximo 5MB</div>
+        </div>
       </div>
+      <input type="file" id="foto-input" accept="image/*" style="display:none;" onchange="previewFoto(this)">
     </div>
     <div class="form-group"><label class="form-label">Categoría</label>
       <select class="form-select" id="pub-categoria">
@@ -309,7 +319,14 @@ function cerrarAuth(){
   cerrarOverlay('overlay-auth');
   document.getElementById('auth-error').style.display = 'none';
 }
-function cerrarPublicar(){ cerrarOverlay('overlay-publicar'); }
+function cerrarPublicar(){
+  cerrarOverlay('overlay-publicar');
+  fotoFile = null;
+  document.getElementById('foto-preview').style.display='none';
+  document.getElementById('foto-placeholder').style.display='block';
+  document.getElementById('foto-upload-area').classList.remove('has-image');
+  document.getElementById('foto-input').value='';
+}
 
 // ─── NAV USER ────────────────────────────────────────
 function actualizarNavUser(){
@@ -440,7 +457,7 @@ function renderAnuncios(){
     <div class="anuncio-card" onclick="verDetalle(${a.id})">
       <div class="anuncio-img">
         ${a.urgente?'<span class="badge-urgente">URGENTE</span>':''}
-        ${EMOJIS[a.categoria]||'📦'}
+        ${a.imagen_url ? `<img src="${a.imagen_url}" alt="${a.titulo}" loading="lazy">` : (EMOJIS[a.categoria]||'📦')}
       </div>
       <div class="anuncio-body">
         <div class="anuncio-precio">${Number(a.precio).toLocaleString()} <span>CUP</span></div>
@@ -473,7 +490,7 @@ function verDetalle(id){
   const msg = encodeURIComponent(`Hola ${nombre}, vi tu anuncio en TuVenta: "${a.titulo}" a ${Number(a.precio).toLocaleString()} CUP. ¿Está disponible?`);
   const fecha = a.created_at ? new Date(a.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short'}) : '';
   document.getElementById('detalle-contenido').innerHTML = `
-    <div class="detalle-img">${EMOJIS[a.categoria]||'📦'}</div>
+    <div class="detalle-img">${a.imagen_url ? `<img src="${a.imagen_url}" alt="${a.titulo}" style="width:100%;height:100%;object-fit:cover;">` : (EMOJIS[a.categoria]||'📦')}</div>
     <div class="detalle-precio">${Number(a.precio).toLocaleString()} CUP</div>
     <div class="detalle-titulo">${a.titulo}</div>
     <div class="detalle-tags">
@@ -499,6 +516,33 @@ function verDetalle(id){
 }
 
 // ─── PUBLICAR ────────────────────────────────────────
+let fotoFile = null;
+
+function previewFoto(input){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 5*1024*1024){ showToast('La foto no puede pesar más de 5MB'); return; }
+  fotoFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('foto-preview-img').src = e.target.result;
+    document.getElementById('foto-preview').style.display = 'block';
+    document.getElementById('foto-placeholder').style.display = 'none';
+    document.getElementById('foto-upload-area').classList.add('has-image');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function subirFoto(userId){
+  if(!fotoFile) return null;
+  const ext = fotoFile.name.split('.').pop();
+  const path = `${userId}/${Date.now()}.${ext}`;
+  const {data, error} = await sb.storage.from('anuncios').upload(path, fotoFile, {cacheControl:'3600',upsert:false});
+  if(error){ console.error('Error subiendo foto:', error); return null; }
+  const {data:{publicUrl}} = sb.storage.from('anuncios').getPublicUrl(path);
+  return publicUrl;
+}
+
 async function openPublicar(){
   if(!currentUser){
     abrirOverlay('overlay-auth');
@@ -520,12 +564,15 @@ async function publicarAnuncio(){
   const wa = currentPerfil ? '53'+(currentPerfil.whatsapp||'').replace(/[^0-9]/g,'').replace(/^53/,'') : '';
   const nombre = currentPerfil?.nombre || '';
   const btn = document.getElementById('btn-pub-submit');
-  btn.disabled=true; btn.textContent='Publicando...';
+  btn.disabled=true; btn.textContent='Subiendo foto...';
+  const imagenUrl = await subirFoto(currentUser.id);
+  btn.textContent='Publicando...';
   const {error} = await sb.from('anuncios').insert({
     titulo, descripcion:desc, precio:parseInt(precio), categoria, ciudad,
     whatsapp:wa, nombre_vendedor:nombre,
     verificado:false, urgente:false, activo:true,
-    user_id: currentUser.id
+    user_id: currentUser.id,
+    imagen_url: imagenUrl
   });
   btn.disabled=false; btn.textContent='Publicar gratis';
   if(error){ showToast('Error al publicar: '+error.message); return; }
