@@ -303,7 +303,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
         </select>
       </div>
     </div>
-    <button class="btn-submit" onclick="publicarAnuncio()">Publicar gratis</button>
+    <button class="btn-submit" id="btn-publicar-submit" onclick="publicarAnuncio()">Publicar gratis</button>
     <button class="btn-cancel" onclick="closeModal('modal-publicar')">Cancelar</button>
   </div>
 </div>
@@ -667,13 +667,14 @@ async function publicarAnuncio(){
   const nombre = currentPerfil ? currentPerfil.nombre : '';
   const desc = document.getElementById('pub-desc').value.trim();
 
+  if(!currentUser || !currentPerfil) return showToast('Debes iniciar sesión para publicar');
   if(!titulo) return showToast('Escribe un título para tu anuncio');
   if(!categoria) return showToast('Selecciona una categoría');
   if(!precio) return showToast('Pon el precio de tu anuncio');
   if(!ciudad) return showToast('Selecciona tu ciudad');
 
 
-  const btnSubmit = document.querySelector('.btn-submit');
+  const btnSubmit = document.getElementById('btn-publicar-submit');
   btnSubmit.disabled = true;
   btnSubmit.textContent = 'Publicando...';
 
@@ -694,7 +695,7 @@ async function publicarAnuncio(){
   btnSubmit.disabled = false;
   btnSubmit.textContent = 'Publicar gratis';
 
-  if(error){ showToast('Error al publicar, intenta de nuevo'); return; }
+  if(error){ console.error('Error publicar:', error); showToast('Error: ' + (error.message||'intenta de nuevo')); return; }
 
   closeModal('modal-publicar');
   ['pub-titulo','pub-categoria','pub-precio','pub-ciudad','pub-whatsapp','pub-nombre','pub-desc'].forEach(id => {
