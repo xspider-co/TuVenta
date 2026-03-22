@@ -168,7 +168,7 @@ tr:hover td{background:var(--surface2);}
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Foto</th><th>Título</th><th>Categoría</th><th>Precio</th><th>Ciudad</th><th>Vendedor</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <thead><tr><th>Foto</th><th>Título / Categoría</th><th>Precio</th><th>Ciudad</th><th>Vendedor</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody id="tabla-anuncios"></tbody>
           </table>
         </div>
@@ -291,8 +291,8 @@ async function cargarStats(){
     <tr>
       <td><div class="td-img">${a.imagen_url?`<img src="${a.imagen_url}">`:(EMOJIS[a.categoria]||'📦')}</div></td>
       <td style="max-width:200px;"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.titulo}</div></td>
-      <td>${Number(a.precio).toLocaleString()} CUP</td>
-      <td>${a.ciudad}</td>
+      <td>${Number(a.precio).toLocaleString()} ${a.moneda||'CUP'}</td>
+      <td>${a.ciudad||'—'}</td>
       <td>${a.nombre_vendedor||'—'}</td>
       <td style="color:var(--text2);font-size:0.78rem;">${new Date(a.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</td>
     </tr>`).join('');
