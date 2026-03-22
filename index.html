@@ -394,7 +394,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <script>
 const SURL = 'https://wyuexqgrfigxegtcaigs.supabase.co';
 const SKEY = 'sb_publishable_sU8WGU9UZsowfEyQZDpB-w_sygzksNk';
-const sb = supabase.createClient(SURL, SKEY);
+const sb = supabase.createClient(SURL, SKEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    storageKey: 'tuventa-auth',
+    storage: window.localStorage
+  }
+});
 
 const EMOJIS = {electrodomesticos:'📺',ropa:'👕',alimentos:'🍎',servicios:'🔧',vehiculos:'🚗',inmuebles:'🏡',mipyme:'🏪'};
 const CATS = {electrodomesticos:'Electrodomésticos',ropa:'Ropa y calzado',alimentos:'Alimentos',servicios:'Servicios',vehiculos:'Vehículos',inmuebles:'Inmuebles',mipyme:'MIPYMEs'};
@@ -882,9 +889,7 @@ function showToast(msg){
 
 // ─── INIT ────────────────────────────────────────────
 async function init(){
-  // Cargar anuncios primero — no depende de sesión
-  await cargarAnuncios();
-  // Luego cargar sesión
+  // Cargar sesión PRIMERO antes que nada
   try{
     const {data:{session}} = await sb.auth.getSession();
     if(session?.user){
@@ -893,6 +898,8 @@ async function init(){
     }
   }catch(e){ console.error('Sesión:', e); }
   actualizarNavUser();
+  // Luego cargar anuncios
+  await cargarAnuncios();
   // Restaurar ciudad guardada
   const ciudadGuardada = localStorage.getItem('tv_ciudad');
   if(ciudadGuardada){
