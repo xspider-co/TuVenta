@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TuVenta Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#242424;--border:#2e2e2e;
+  --accent:#e63946;--green:#2d6a4f;--yellow:#f4a261;--blue:#3b82f6;
+  --text:#f0f0f0;--text2:#888;--text3:#555;--radius:10px;
+  --font:'Figtree',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LOGIN */
+#screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px 32px;width:340px;}
+.login-logo{font-weight:800;font-size:1.4rem;color:var(--accent);margin-bottom:4px;}
+.login-sub{color:var(--text2);font-size:0.82rem;margin-bottom:24px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:0.72rem;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.6px;font-weight:600;}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;}
+.field input:focus{border-color:var(--accent);}
+.btn-login{width:100%;background:var(--accent);color:white;border:none;border-radius:8px;padding:12px;font-family:var(--font);font-weight:700;font-size:0.95rem;cursor:pointer;margin-top:8px;}
+.login-error{color:var(--accent);font-size:0.8rem;margin-top:10px;display:none;text-align:center;}
+
+/* APP */
+#app{display:none;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-logo{font-weight:800;color:var(--accent);font-size:1.1rem;}
+.topbar-logo span{color:var(--text2);font-weight:400;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.badge-admin{background:rgba(230,57,70,0.15);color:var(--accent);border:1px solid rgba(230,57,70,0.3);border-radius:100px;padding:3px 10px;font-size:0.72rem;font-weight:700;}
+.btn-logout{background:none;border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:5px 12px;font-size:0.78rem;cursor:pointer;font-family:var(--font);}
+
+.layout{display:flex;min-height:calc(100vh - 56px);}
+
+/* SIDEBAR */
+.sidebar{width:200px;background:var(--surface);border-right:1px solid var(--border);padding:16px 0;flex-shrink:0;}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;color:var(--text2);font-size:0.88rem;font-weight:500;transition:all 0.2s;border-left:3px solid transparent;}
+.sidebar-item:hover{background:var(--surface2);color:var(--text);}
+.sidebar-item.active{background:var(--surface2);color:var(--accent);border-left-color:var(--accent);}
+.sidebar-item svg{width:16px;height:16px;flex-shrink:0;}
+
+/* CONTENT */
+.content{flex:1;padding:24px;overflow-y:auto;}
+.screen{display:none;}
+.screen.active{display:block;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.stat-label{font-size:0.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;font-weight:600;}
+.stat-value{font-size:2rem;font-weight:800;line-height:1;}
+.stat-value.red{color:var(--accent);}
+.stat-value.green{color:var(--green);}
+.stat-value.blue{color:var(--blue);}
+.stat-value.yellow{color:var(--yellow);}
+.stat-sub{font-size:0.72rem;color:var(--text2);margin-top:4px;}
+
+/* TABLAS */
+.section-title{font-size:1rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--surface2);padding:10px 14px;text-align:left;font-size:0.72rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.6px;font-weight:600;border-bottom:1px solid var(--border);}
+td{padding:10px 14px;font-size:0.85rem;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface2);}
+.td-img{width:48px;height:48px;border-radius:6px;object-fit:cover;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+.td-img img{width:100%;height:100%;object-fit:cover;border-radius:6px;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:0.68rem;font-weight:700;}
+.badge-green{background:rgba(45,106,79,0.15);color:#4ade80;border:1px solid rgba(45,106,79,0.3);}
+.badge-gray{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.badge-yellow{background:rgba(244,162,97,0.15);color:var(--yellow);border:1px solid rgba(244,162,97,0.3);}
+.badge-blue{background:rgba(59,130,246,0.15);color:var(--blue);border:1px solid rgba(59,130,246,0.3);}
+
+/* BOTONES ACCIÓN */
+.btn-accion{background:var(--surface2);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:4px 10px;font-size:0.75rem;cursor:pointer;font-family:var(--font);font-weight:600;transition:all 0.2s;margin-right:4px;}
+.btn-accion:hover{border-color:var(--accent);color:var(--accent);}
+.btn-accion.green:hover{border-color:#4ade80;color:#4ade80;}
+.btn-accion.blue:hover{border-color:var(--blue);color:var(--blue);}
+.btn-accion.danger:hover{border-color:var(--accent);color:var(--accent);}
+
+/* SEARCH */
+.search-bar{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text);font-family:var(--font);font-size:0.88rem;outline:none;width:240px;margin-bottom:14px;}
+.search-bar:focus{border-color:var(--accent);}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px;color:var(--text2);}
+.empty-icon{font-size:2.5rem;margin-bottom:8px;}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--text2);font-size:0.88rem;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login">
+  <div class="login-box">
+    <div class="login-logo">TuVenta <span>Admin</span></div>
+    <div class="login-sub">Panel de administración</div>
+    <div class="field"><label>WhatsApp</label><input type="text" id="login-wa" placeholder="Tu número"></div>
+    <div class="field"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-login" onclick="doLogin()">Entrar al panel →</button>
+    <div class="login-error" id="login-error">Acceso denegado — solo administradores</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">TuVenta <span>Admin</span></div>
+    <div class="topbar-right">
+      <span class="badge-admin">⚡ Admin</span>
+      <span id="admin-nombre" style="font-size:0.82rem;color:var(--text2);"></span>
+      <button class="btn-logout" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-item active" onclick="goTo('stats',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Resumen
+      </div>
+      <div class="sidebar-item" onclick="goTo('anuncios',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Anuncios
+      </div>
+      <div class="sidebar-item" onclick="goTo('usuarios',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Usuarios
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- STATS -->
+      <div class="screen active" id="screen-stats">
+        <div class="stats-grid" id="stats-grid">
+          <div class="loading">Cargando estadísticas...</div>
+        </div>
+        <div class="section-title">Últimos anuncios publicados</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Foto</th><th>Título</th><th>Precio</th><th>Ciudad</th><th>Vendedor</th><th>Fecha</th></tr></thead>
+            <tbody id="stats-recientes"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ANUNCIOS -->
+      <div class="screen" id="screen-anuncios">
+        <div class="section-title">
+          Todos los anuncios
+          <input class="search-bar" placeholder="🔍 Buscar..." id="search-anuncios" oninput="filtrarTablaAnuncios()">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Foto</th><th>Título</th><th>Categoría</th><th>Precio</th><th>Ciudad</th><th>Vendedor</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="tabla-anuncios"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- USUARIOS -->
+      <div class="screen" id="screen-usuarios">
+        <div class="section-title">
+          Todos los usuarios
+          <input class="search-bar" placeholder="🔍 Buscar..." id="search-usuarios" oninput="filtrarTablaUsuarios()">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>WhatsApp</th><th>Ciudad</th><th>Registro</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="tabla-usuarios"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const SURL='https://wyuexqgrfigxegtcaigs.supabase.co';
+const SKEY='sb_publishable_sU8WGU9UZsowfEyQZDpB-w_sygzksNk';
+const sb=supabase.createClient(SURL,SKEY);
+
+const EMOJIS={electrodomesticos:'📺',ropa:'👕',alimentos:'🍎',servicios:'🔧',vehiculos:'🚗',inmuebles:'🏡',mipyme:'🏪'};
+const CATS={electrodomesticos:'Electrodomésticos',ropa:'Ropa',alimentos:'Alimentos',servicios:'Servicios',vehiculos:'Vehículos',inmuebles:'Inmuebles',mipyme:'MIPYME'};
+
+let todosAnuncios=[];
+let todosUsuarios=[];
+
+function waToEmail(wa){
+  const d=wa.replace(/[^0-9]/g,'');
+  return(d.startsWith('53')?d:'53'+d)+'@tuventa.cu';
+}
+
+async function doLogin(){
+  const wa=document.getElementById('login-wa').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  if(!wa||!pass) return;
+  const email=waToEmail(wa);
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  if(error){document.getElementById('login-error').style.display='block';return;}
+  // Verificar que es admin
+  const {data:perfil}=await sb.from('perfiles').select('nombre,es_admin').eq('id',data.user.id).single();
+  if(!perfil?.es_admin){
+    await sb.auth.signOut();
+    document.getElementById('login-error').style.display='block';
+    return;
+  }
+  document.getElementById('admin-nombre').textContent=perfil.nombre;
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('app').style.display='block';
+  cargarTodo();
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  location.reload();
+}
+
+async function cargarTodo(){
+  await Promise.all([cargarStats(),cargarAnuncios(),cargarUsuarios()]);
+}
+
+async function cargarStats(){
+  const [{data:anuncios},{data:usuarios}]=await Promise.all([
+    sb.from('anuncios').select('id,titulo,precio,ciudad,nombre_vendedor,categoria,imagen_url,created_at,destacado,verificado').order('created_at',{ascending:false}),
+    sb.from('perfiles').select('id,nombre,whatsapp,ciudad,verificado,es_admin,created_at')
+  ]);
+  const total=anuncios?.length||0;
+  const destacados=anuncios?.filter(a=>a.destacado)?.length||0;
+  const totalUsers=usuarios?.length||0;
+  const verificados=usuarios?.filter(u=>u.verificado)?.length||0;
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total anuncios</div><div class="stat-value red">${total}</div><div class="stat-sub">${destacados} destacados</div></div>
+    <div class="stat-card"><div class="stat-label">Usuarios registrados</div><div class="stat-value blue">${totalUsers}</div><div class="stat-sub">${verificados} verificados</div></div>
+    <div class="stat-card"><div class="stat-label">Anuncios hoy</div><div class="stat-value green">${anuncios?.filter(a=>new Date(a.created_at).toDateString()===new Date().toDateString())?.length||0}</div><div class="stat-sub">publicados hoy</div></div>
+    <div class="stat-card"><div class="stat-label">Usuarios hoy</div><div class="stat-value yellow">${usuarios?.filter(u=>new Date(u.created_at).toDateString()===new Date().toDateString())?.length||0}</div><div class="stat-sub">registrados hoy</div></div>`;
+  const recientes=document.getElementById('stats-recientes');
+  recientes.innerHTML=(anuncios||[]).slice(0,8).map(a=>`
+    <tr>
+      <td><div class="td-img">${a.imagen_url?`<img src="${a.imagen_url}">`:(EMOJIS[a.categoria]||'📦')}</div></td>
+      <td style="max-width:200px;"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.titulo}</div></td>
+      <td>${Number(a.precio).toLocaleString()} CUP</td>
+      <td>${a.ciudad}</td>
+      <td>${a.nombre_vendedor||'—'}</td>
+      <td style="color:var(--text2);font-size:0.78rem;">${new Date(a.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short'})}</td>
+    </tr>`).join('');
+}
+
+async function cargarAnuncios(){
+  const {data}=await sb.from('anuncios').select('*').order('created_at',{ascending:false});
+  todosAnuncios=data||[];
+  renderTablaAnuncios(todosAnuncios);
+}
+
+function renderTablaAnuncios(lista){
+  document.getElementById('tabla-anuncios').innerHTML=lista.length?lista.map(a=>`
+    <tr id="row-a-${a.id}">
+      <td><div class="td-img">${a.imagen_url?`<img src="${a.imagen_url}">`:(EMOJIS[a.categoria]||'📦')}</div></td>
+      <td style="max-width:180px;"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.titulo}</div><div style="font-size:0.72rem;color:var(--text2);">${CATS[a.categoria]||a.categoria}</div></td>
+      <td>${Number(a.precio).toLocaleString()} CUP</td>
+      <td>${a.ciudad}</td>
+      <td>${a.nombre_vendedor||'—'}</td>
+      <td>
+        ${a.destacado?'<span class="badge badge-yellow">⭐ Destacado</span>':'<span class="badge badge-gray">Normal</span>'}
+        ${a.verificado?'<span class="badge badge-green" style="margin-left:4px;">✓ Verificado</span>':''}
+      </td>
+      <td>
+        <button class="btn-accion blue" onclick="toggleDestacado(${a.id},${a.destacado})">${a.destacado?'Quitar destaque':'Destacar'}</button>
+        <button class="btn-accion danger" onclick="eliminarAnuncio(${a.id})">Eliminar</button>
+      </td>
+    </tr>`).join(''):`<tr><td colspan="8"><div class="empty"><div class="empty-icon">📭</div>No hay anuncios</div></td></tr>`;
+}
+
+function filtrarTablaAnuncios(){
+  const q=document.getElementById('search-anuncios').value.toLowerCase();
+  renderTablaAnuncios(todosAnuncios.filter(a=>a.titulo.toLowerCase().includes(q)||a.ciudad.toLowerCase().includes(q)||(a.nombre_vendedor||'').toLowerCase().includes(q)));
+}
+
+async function toggleDestacado(id,actual){
+  await sb.from('anuncios').update({destacado:!actual}).eq('id',id);
+  await cargarAnuncios();
+}
+
+async function eliminarAnuncio(id){
+  if(!confirm('¿Eliminar este anuncio definitivamente?')) return;
+  await sb.from('anuncios').delete().eq('id',id);
+  todosAnuncios=todosAnuncios.filter(a=>a.id!==id);
+  renderTablaAnuncios(todosAnuncios);
+  await cargarStats();
+}
+
+async function cargarUsuarios(){
+  const {data}=await sb.from('perfiles').select('*').order('created_at',{ascending:false});
+  todosUsuarios=data||[];
+  renderTablaUsuarios(todosUsuarios);
+}
+
+function renderTablaUsuarios(lista){
+  document.getElementById('tabla-usuarios').innerHTML=lista.length?lista.map(u=>`
+    <tr id="row-u-${u.id}">
+      <td><div style="font-weight:600;">${u.nombre}</div></td>
+      <td style="color:var(--text2);">+53 ${u.whatsapp||'—'}</td>
+      <td>${u.ciudad||'—'}</td>
+      <td style="color:var(--text2);font-size:0.78rem;">${new Date(u.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'})}</td>
+      <td>
+        ${u.verificado?'<span class="badge badge-green">✓ Verificado</span>':'<span class="badge badge-gray">Sin verificar</span>'}
+        ${u.es_admin?'<span class="badge badge-blue" style="margin-left:4px;">Admin</span>':''}
+      </td>
+      <td>
+        <button class="btn-accion green" onclick="toggleVerificado('${u.id}',${u.verificado})">${u.verificado?'Quitar verificación':'Verificar'}</button>
+      </td>
+    </tr>`).join(''):`<tr><td colspan="6"><div class="empty"><div class="empty-icon">👥</div>No hay usuarios</div></td></tr>`;
+}
+
+function filtrarTablaUsuarios(){
+  const q=document.getElementById('search-usuarios').value.toLowerCase();
+  renderTablaUsuarios(todosUsuarios.filter(u=>u.nombre.toLowerCase().includes(q)||(u.whatsapp||'').includes(q)));
+}
+
+async function toggleVerificado(id,actual){
+  await sb.from('perfiles').update({verificado:!actual}).eq('id',id);
+  await cargarUsuarios();
+}
+
+function goTo(screen,el){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  el.classList.add('active');
+}
+
+// Verificar sesión al cargar
+async function init(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    const {data:perfil}=await sb.from('perfiles').select('nombre,es_admin').eq('id',session.user.id).single();
+    if(perfil?.es_admin){
+      document.getElementById('admin-nombre').textContent=perfil.nombre;
+      document.getElementById('screen-login').style.display='none';
+      document.getElementById('app').style.display='block';
+      cargarTodo();
+    }
+  }
+}
+init();
+</script>
+</body>
+</html>
