@@ -658,7 +658,13 @@ function verDetalle(id){
   document.getElementById('modal-detalle').classList.add('open');
 }
 
-function openPublicar(){
+async function openPublicar(){
+  // Recargar sesión fresca antes de comprobar
+  const {data:{session}} = await sb.auth.getSession();
+  if(session && !currentUser){
+    currentUser = session.user;
+    await cargarPerfil(currentUser.id);
+  }
   if(!currentUser){ openAuth(); return; }
   document.getElementById('modal-publicar').classList.add('open');
 }
@@ -716,6 +722,22 @@ async function publicarAnuncio(){
   showToast('✓ Anuncio publicado correctamente');
 }
 
+function openMenuPerfil(){
+  const nombre = currentPerfil?.nombre || 'Mi perfil';
+  if(confirm(`${nombre} — ¿Cerrar sesión?`)){
+    doLogout();
+  }
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser = null;
+  currentPerfil = null;
+  actualizarNavUser();
+  showToast('Sesión cerrada');
+  document.querySelectorAll('.bnav-item').forEach((b,i)=>b.classList.toggle('active',i===0));
+}
+
 function goScreen(screen, btn){
   document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('active'));
   if(btn) btn.classList.add('active');
@@ -724,7 +746,7 @@ function goScreen(screen, btn){
   } else if(screen === 'mis-anuncios'){
     verMisAnuncios();
   } else if(screen === 'perfil'){
-    if(currentUser){ if(confirm('¿Cerrar sesión?')) { sb.auth.signOut().then(()=>showToast('Sesión cerrada')); } }
+    if(currentUser){ openMenuPerfil(); }
     else openAuth();
   }
 }
@@ -737,7 +759,15 @@ function showToast(msg){
 }
 
 // INIT
-cargarAnuncios();
+async function init(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(session){
+    currentUser = session.user;
+    await cargarPerfil(currentUser.id);
+  }
+  await cargarAnuncios();
+}
+init();
 </script>
 </body>
 </html>
