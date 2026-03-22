@@ -278,8 +278,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="form-group"><label class="form-label">Título</label><input class="form-input" type="text" id="pub-titulo" placeholder="Ej: Ventilador de techo en buen estado"></div>
     <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-input" id="pub-desc" rows="3" placeholder="Describe tu producto o servicio..." style="resize:none;"></textarea></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Precio (CUP)</label><input class="form-input" type="number" id="pub-precio" placeholder="0"></div>
+    <div class="form-group">
+        <label class="form-label">Precio y moneda</label>
+        <div style="display:flex;gap:8px;">
+          <input class="form-input" type="number" id="pub-precio" placeholder="0" style="flex:1;">
+          <select id="pub-moneda" style="width:100px;flex-shrink:0;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 10px;font-family:var(--font);font-size:16px;color:var(--text);outline:none;">
+            <option value="CUP">CUP</option>
+            <option value="USD">USD</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
       <div class="form-group"><label class="form-label">Ciudad</label>
         <select class="form-select" id="pub-ciudad">
           <option value="">Ciudad</option>
@@ -332,7 +341,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="form-group"><label class="form-label">Título</label><input class="form-input" type="text" id="edit-titulo"></div>
     <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-input" id="edit-desc" rows="3" style="resize:none;"></textarea></div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Precio (CUP)</label><input class="form-input" type="number" id="edit-precio"></div>
+      <div class="form-group">
+        <label class="form-label">Precio</label>
+        <div style="display:flex;gap:6px;">
+          <input class="form-input" type="number" id="edit-precio" style="flex:1;">
+          <select class="form-select" id="edit-moneda" style="width:80px;flex-shrink:0;">
+            <option value="CUP">CUP</option>
+            <option value="USD">USD</option>
+          </select>
+        </div>
+      </div>
       <div class="form-group"><label class="form-label">Ciudad</label>
         <select class="form-select" id="edit-ciudad">
           <option>La Habana</option><option>Santiago de Cuba</option><option>Holguín</option>
@@ -616,7 +634,7 @@ function renderAnuncios(){
         ${a.imagen_url ? `<img src="${a.imagen_url}" alt="${a.titulo}" loading="lazy">` : (EMOJIS[a.categoria]||'📦')}
       </div>
       <div class="anuncio-body">
-        <div class="anuncio-precio">${Number(a.precio).toLocaleString()} <span>CUP</span></div>
+        <div class="anuncio-precio">${Number(a.precio).toLocaleString()} <span>${a.moneda||'CUP'}</span></div>
         <div class="anuncio-titulo">${a.titulo}</div>
         <div class="anuncio-meta">📍 ${a.ciudad} ${a.verificado?'<span class="anuncio-verificado">✓</span>':''}</div>
       </div>
@@ -678,7 +696,7 @@ async function verDetalle(id){
   const urgenteHtml = a.urgente ? '<span class="detalle-tag" style="color:var(--accent)">🔥 Urgente</span>' : '';
   document.getElementById('detalle-contenido').innerHTML =
     '<div class="detalle-img">'+imgHtml+'</div>'+
-    '<div class="detalle-precio">'+Number(a.precio).toLocaleString()+' CUP</div>'+
+    '<div class="detalle-precio">'+Number(a.precio).toLocaleString()+' '+(a.moneda||'CUP')+'</div>'+
     '<div class="detalle-titulo">'+a.titulo+'</div>'+
     '<div class="detalle-tags">'+
       '<span class="detalle-tag">'+(EMOJIS[a.categoria]||'')+' '+(CATS[a.categoria]||a.categoria)+'</span>'+
@@ -760,6 +778,7 @@ function abrirEditar(id){
   document.getElementById('edit-titulo').value = a.titulo || '';
   document.getElementById('edit-desc').value = a.descripcion || '';
   document.getElementById('edit-precio').value = a.precio || '';
+  document.getElementById('edit-moneda').value = a.moneda || 'CUP';
   document.getElementById('edit-categoria').value = a.categoria || '';
   document.getElementById('edit-ciudad').value = a.ciudad || '';
   cerrarOverlay('overlay-mis-anuncios');
@@ -776,7 +795,8 @@ async function guardarEdicion(){
   if(!precio) return showToast('Pon el precio');
   const btn = document.getElementById('btn-edit-submit');
   btn.disabled=true; btn.textContent='Guardando...';
-  const {error} = await sb.from('anuncios').update({titulo, descripcion:desc, precio:parseInt(precio), categoria, ciudad}).eq('id', editandoId).eq('user_id', currentUser.id);
+  const monedaEdit = document.getElementById('edit-moneda').value || 'CUP';
+  const {error} = await sb.from('anuncios').update({titulo, descripcion:desc, precio:parseInt(precio), categoria, ciudad, moneda:monedaEdit}).eq('id', editandoId).eq('user_id', currentUser.id);
   btn.disabled=false; btn.textContent='Guardar cambios';
   if(error){ showToast('Error al guardar'); return; }
   cerrarOverlay('overlay-editar');
@@ -841,6 +861,7 @@ async function publicarAnuncio(){
   const {error} = await sb.from('anuncios').insert({
     titulo, descripcion:desc, precio:parseInt(precio), categoria, ciudad,
     whatsapp:wa, nombre_vendedor:nombre,
+    moneda: document.getElementById('pub-moneda').value || 'CUP',
     verificado:false, urgente:false, activo:true,
     user_id: currentUser.id,
     imagen_url: imagenUrl
