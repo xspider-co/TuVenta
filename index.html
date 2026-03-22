@@ -168,12 +168,27 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="cat-pill" onclick="filtrarCat('mipyme',this)">🏪 MIPYMEs</div>
   </div>
 </div>
+<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;gap:8px;">
+  <span style="font-size:0.75rem;color:var(--text2);font-weight:600;white-space:nowrap;">📍 Ciudad:</span>
+  <select id="filtro-ciudad" onchange="filtrarAnuncios()" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-family:var(--font);font-size:0.82rem;color:var(--text);outline:none;max-width:200px;">
+    <option value="">Todas las ciudades</option>
+    <option>La Habana</option>
+    <option>Santiago de Cuba</option>
+    <option>Holguín</option>
+    <option>Camagüey</option>
+    <option>Santa Clara</option>
+    <option>Matanzas</option>
+    <option>Cienfuegos</option>
+    <option>Otra</option>
+  </select>
+</div>
 
 <div class="main content-pad">
   <div class="section-header">
     <h2 id="section-titulo">Anuncios recientes</h2>
     <span class="ver-todo" id="conteo"></span>
   </div>
+  <div id="paginacion"></div>
   <div class="anuncios-grid" id="anuncios-grid">
     <div class="empty-state">⏳ Cargando anuncios...</div>
   </div>
@@ -389,6 +404,9 @@ let currentPerfil = null;
 let anuncios = [];
 let catActual = 'todos';
 let busqueda = '';
+let ciudadActual = '';
+let paginaActual = 1;
+const POR_PAGINA = 20;
 
 // ─── OVERLAYS ───────────────────────────────────────
 function abrirOverlay(id){ document.getElementById(id).classList.add('visible'); }
@@ -469,7 +487,9 @@ async function doRegistro(){
   if(!nombre||!wa||!pass) return mostrarAuthError('Completa todos los campos');
   if(pass.length<6) return mostrarAuthError('La contraseña debe tener al menos 6 caracteres');
   const digits = wa.replace(/[^0-9]/g,'');
-  if(digits.length < 7) return mostrarAuthError('Número de WhatsApp inválido');
+  if(digits.length < 8) return mostrarAuthError('Número de WhatsApp inválido — debe tener 8 dígitos');
+  if(digits.length > 8) return mostrarAuthError('Número de WhatsApp inválido — solo 8 dígitos sin el +53');
+  if(!digits.startsWith('5')) return mostrarAuthError('Los números cubanos empiezan por 5');
   // Verificar duplicado
   const {data:existe} = await sb.from('perfiles').select('id').eq('whatsapp',digits).maybeSingle();
   if(existe) return mostrarAuthError('Este número ya tiene una cuenta. Entra con tu número y contraseña.');
@@ -526,18 +546,24 @@ async function cargarAnuncios(){
 function renderAnuncios(){
   let lista = anuncios;
   if(catActual !== 'todos') lista = lista.filter(a=>a.categoria===catActual);
+  if(ciudadActual) lista = lista.filter(a=>a.ciudad===ciudadActual);
   if(busqueda){
     const q = busqueda.toLowerCase();
     lista = lista.filter(a=> a.titulo.toLowerCase().includes(q) || (a.descripcion||'').toLowerCase().includes(q) || a.ciudad.toLowerCase().includes(q));
   }
+  const total = lista.length;
+  const totalPaginas = Math.ceil(total/POR_PAGINA);
+  const inicio = (paginaActual-1)*POR_PAGINA;
+  const paginada = lista.slice(inicio, inicio+POR_PAGINA);
   const grid = document.getElementById('anuncios-grid');
-  document.getElementById('conteo').textContent = lista.length+' anuncio'+(lista.length!==1?'s':'');
+  document.getElementById('conteo').textContent = total+' anuncio'+(total!==1?'s':'');
   document.getElementById('section-titulo').textContent = catActual==='todos' ? 'Anuncios recientes' : (CATS[catActual]||'Anuncios');
-  if(!lista.length){
+  if(!paginada.length){
     grid.innerHTML='<div class="empty-state"><div style="font-size:3rem;margin-bottom:12px">🔍</div><div style="font-weight:700">No hay anuncios aquí todavía</div><div style="font-size:0.85rem;margin-top:4px">Sé el primero en publicar</div></div>';
+    document.getElementById('paginacion').innerHTML='';
     return;
   }
-  grid.innerHTML = lista.map(a=>`
+  grid.innerHTML = paginada.map(a=>`
     <div class="anuncio-card ${a.destacado?'destacado':''}" onclick="verDetalle(${a.id})">
       <div class="anuncio-img">
         ${a.destacado?'<span class="badge-destacado">⭐ Destacado</span>':''}
@@ -550,10 +576,30 @@ function renderAnuncios(){
         <div class="anuncio-meta">📍 ${a.ciudad} ${a.verificado?'<span class="anuncio-verificado">✓</span>':''}</div>
       </div>
     </div>`).join('');
+  // Paginación
+  if(totalPaginas>1){
+    let pgHtml = '<div style="display:flex;justify-content:center;gap:6px;padding:12px 0;flex-wrap:wrap;">';
+    if(paginaActual>1) pgHtml+=`<button onclick="irPagina(${paginaActual-1})" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--font);font-size:0.82rem;">← Anterior</button>`;
+    for(let i=1;i<=totalPaginas;i++){
+      pgHtml+=`<button onclick="irPagina(${i})" style="background:${i===paginaActual?'var(--accent)':'var(--surface)'};color:${i===paginaActual?'white':'var(--text2)'};border:1px solid ${i===paginaActual?'var(--accent)':'var(--border)'};border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--font);font-size:0.82rem;">${i}</button>`;
+    }
+    if(paginaActual<totalPaginas) pgHtml+=`<button onclick="irPagina(${paginaActual+1})" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--font);font-size:0.82rem;">Siguiente →</button>`;
+    pgHtml+='</div>';
+    document.getElementById('paginacion').innerHTML=pgHtml;
+  } else {
+    document.getElementById('paginacion').innerHTML='';
+  }
+}
+
+function irPagina(n){
+  paginaActual=n;
+  renderAnuncios();
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function filtrarCat(cat, el){
   catActual = cat;
+  paginaActual = 1;
   document.querySelectorAll('.cat-pill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   renderAnuncios();
@@ -561,6 +607,10 @@ function filtrarCat(cat, el){
 
 function filtrarAnuncios(){
   busqueda = document.getElementById('search-input').value;
+  ciudadActual = document.getElementById('filtro-ciudad')?.value || '';
+  // Guardar ciudad en localStorage
+  if(ciudadActual) localStorage.setItem('tv_ciudad', ciudadActual);
+  paginaActual = 1;
   renderAnuncios();
 }
 
@@ -690,7 +740,9 @@ async function guardarEdicion(){
 function previewFoto(input){
   const file = input.files[0];
   if(!file) return;
-  if(file.size > 5*1024*1024){ showToast('La foto no puede pesar más de 5MB'); return; }
+  const tiposPermitidos = ['image/jpeg','image/jpg','image/png','image/webp'];
+  if(!tiposPermitidos.includes(file.type)){ showToast('Solo se permiten imágenes JPG, PNG o WebP'); input.value=''; return; }
+  if(file.size > 5*1024*1024){ showToast('La foto no puede pesar más de 5MB'); input.value=''; return; }
   fotoFile = file;
   const reader = new FileReader();
   reader.onload = e => {
@@ -730,6 +782,9 @@ async function publicarAnuncio(){
   if(!categoria) return showToast('Selecciona una categoría');
   if(!precio) return showToast('Pon el precio');
   if(!ciudad) return showToast('Selecciona tu ciudad');
+  // Verificar límite de anuncios
+  const {count} = await sb.from('anuncios').select('*',{count:'exact',head:true}).eq('user_id',currentUser.id).eq('activo',true);
+  if(count>=10) return showToast('Has alcanzado el límite de 10 anuncios activos');
   const wa = currentPerfil ? '53'+(currentPerfil.whatsapp||'').replace(/[^0-9]/g,'').replace(/^53/,'') : '';
   const nombre = currentPerfil?.nombre || '';
   const btn = document.getElementById('btn-pub-submit');
@@ -819,6 +874,12 @@ async function init(){
     }
   }catch(e){ console.error('Sesión:', e); }
   actualizarNavUser();
+  // Restaurar ciudad guardada
+  const ciudadGuardada = localStorage.getItem('tv_ciudad');
+  if(ciudadGuardada){
+    const sel = document.getElementById('filtro-ciudad');
+    if(sel){ sel.value = ciudadGuardada; ciudadActual = ciudadGuardada; renderAnuncios(); }
+  }
 }
 
 init();
