@@ -394,12 +394,31 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <script>
 const SURL = 'https://wyuexqgrfigxegtcaigs.supabase.co';
 const SKEY = 'sb_publishable_sU8WGU9UZsowfEyQZDpB-w_sygzksNk';
+// Storage personalizado que usa localStorage con fallback a sessionStorage
+const customStorage = {
+  getItem: (key) => {
+    try { return localStorage.getItem(key) || sessionStorage.getItem(key); }
+    catch(e){ return sessionStorage.getItem(key); }
+  },
+  setItem: (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+      sessionStorage.setItem(key, value);
+    } catch(e){ sessionStorage.setItem(key, value); }
+  },
+  removeItem: (key) => {
+    try { localStorage.removeItem(key); } catch(e){}
+    try { sessionStorage.removeItem(key); } catch(e){}
+  }
+};
+
 const sb = supabase.createClient(SURL, SKEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    storageKey: 'tuventa-auth',
-    storage: window.localStorage
+    detectSessionInUrl: false,
+    storageKey: 'tuventa-auth-v1',
+    storage: customStorage
   }
 });
 
