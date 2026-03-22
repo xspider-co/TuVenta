@@ -608,7 +608,8 @@ async function verMisAnuncios(){
 
 async function eliminarAnuncio(id){
   if(!confirm('¿Eliminar este anuncio?')) return;
-  await sb.from('anuncios').update({activo:false}).eq('id',id).eq('user_id',currentUser.id);
+  const {error} = await sb.from('anuncios').delete().eq('id',id).eq('user_id',currentUser.id);
+  if(error){ showToast('Error al eliminar'); return; }
   showToast('✓ Anuncio eliminado');
   cerrarOverlay('overlay-mis-anuncios');
   await cargarAnuncios();
