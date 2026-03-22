@@ -293,7 +293,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <label class="form-label">Precio y moneda</label>
         <div style="display:flex;gap:8px;">
           <input class="form-input" type="number" id="pub-precio" placeholder="0" style="flex:1;">
-          <select id="pub-moneda" style="width:100px;flex-shrink:0;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 10px;font-family:var(--font);font-size:16px;color:var(--text);outline:none;">
+          <select id="pub-moneda" onchange="monedaPub=this.value" style="width:100px;flex-shrink:0;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 10px;font-family:var(--font);font-size:16px;color:var(--text);outline:none;">
             <option value="CUP">CUP</option>
             <option value="USD">USD</option>
           </select>
@@ -509,6 +509,9 @@ function cerrarAuth(){
 function cerrarPublicar(){
   cerrarOverlay('overlay-publicar');
   fotoFile = null;
+  monedaPub = 'CUP';
+  const sel = document.getElementById('pub-moneda');
+  if(sel) sel.value = 'CUP';
   document.getElementById('foto-preview').style.display='none';
   document.getElementById('foto-placeholder').style.display='block';
   document.getElementById('foto-upload-area').classList.remove('has-image');
@@ -768,6 +771,7 @@ async function verDetalle(id){
 
 // ─── PUBLICAR ────────────────────────────────────────
 let fotoFile = null;
+let monedaPub = 'CUP';
 let editandoId = null;
 let reportandoId = null;
 
@@ -890,7 +894,7 @@ async function publicarAnuncio(){
   const categoria = document.getElementById('pub-categoria').value;
   const precio = document.getElementById('pub-precio').value;
   const ciudad = document.getElementById('pub-ciudad').value;
-  const monedaSeleccionada = document.getElementById('pub-moneda')?.value || 'CUP';
+  const monedaSeleccionada = monedaPub || 'CUP';
   const desc = document.getElementById('pub-desc').value.trim();
   if(!titulo) return showToast('Escribe un título');
   if(!categoria) return showToast('Selecciona una categoría');
