@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TuVenta — Compra y vende en Cuba</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#e63946;--accent2:#2d6a4f;--text:#1a1a1a;--text2:#555;--text3:#999;
+  --bg:#faf9f6;--surface:#fff;--border:#ebe9e3;
+  --font:'Figtree',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;overflow-x:hidden;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,249,246,0.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 5%;}
+.nav-logo{font-weight:900;font-size:1.3rem;color:var(--accent);letter-spacing:-0.5px;}
+.nav-logo span{color:var(--text3);font-weight:400;}
+.btn-entrar{background:var(--accent);color:white;border:none;border-radius:100px;padding:9px 22px;font-family:var(--font);font-weight:700;font-size:0.85rem;cursor:pointer;text-decoration:none;transition:opacity 0.2s;}
+.btn-entrar:hover{opacity:0.88;}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 5% 60px;text-align:center;position:relative;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--border);border-radius:100px;padding:5px 14px;font-size:0.78rem;font-weight:600;color:var(--text2);margin-bottom:24px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.hero-badge::before{content:'';width:7px;height:7px;background:var(--accent2);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero h1{font-size:clamp(2.4rem,7vw,5rem);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:20px;max-width:700px;}
+.hero h1 span{color:var(--accent);}
+.hero-sub{font-size:clamp(1rem,2.5vw,1.25rem);color:var(--text2);max-width:480px;line-height:1.6;margin-bottom:36px;font-weight:400;}
+.hero-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:48px;}
+.btn-primary{background:var(--accent);color:white;border:none;border-radius:12px;padding:15px 32px;font-family:var(--font);font-weight:700;font-size:1rem;cursor:pointer;text-decoration:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:8px;}
+.btn-primary:hover{opacity:0.88;transform:translateY(-1px);}
+.btn-secondary{background:var(--surface);color:var(--text);border:1.5px solid var(--border);border-radius:12px;padding:15px 28px;font-family:var(--font);font-weight:600;font-size:1rem;cursor:pointer;text-decoration:none;transition:all 0.2s;}
+.btn-secondary:hover{border-color:var(--text2);}
+
+/* PHONE MOCKUP */
+.phone-wrap{position:relative;width:260px;margin:0 auto;}
+.phone{background:#1a1a1a;border-radius:36px;padding:12px;box-shadow:0 32px 64px rgba(0,0,0,0.18);border:1px solid #333;}
+.phone-screen{background:#f7f6f2;border-radius:26px;overflow:hidden;}
+.phone-nav{background:#fff;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ebe9e3;}
+.phone-logo{font-weight:900;font-size:0.9rem;color:var(--accent);}
+.phone-search{background:#f0efe9;border-radius:100px;padding:5px 10px;font-size:0.62rem;color:#999;flex:1;margin:0 8px;}
+.phone-pub{background:var(--accent);color:white;border-radius:100px;padding:5px 10px;font-size:0.62rem;font-weight:700;}
+.phone-cats{background:#fff;padding:8px 10px;display:flex;gap:5px;overflow:hidden;border-bottom:1px solid #ebe9e3;}
+.phone-cat{background:#f0efe9;border-radius:100px;padding:4px 8px;font-size:0.58rem;font-weight:600;color:#666;white-space:nowrap;}
+.phone-cat.active{background:var(--accent);color:white;}
+.phone-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;}
+.phone-card{background:#fff;border-radius:8px;overflow:hidden;border:1px solid #ebe9e3;}
+.phone-img{height:64px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:#f0efe9;position:relative;}
+.phone-img.dest{border:2px solid #f4a261;}
+.phone-badge-dest{position:absolute;top:3px;right:3px;background:#f4a261;color:white;font-size:0.48rem;font-weight:700;padding:1px 4px;border-radius:100px;}
+.phone-card-body{padding:5px;}
+.phone-price{font-weight:800;font-size:0.72rem;}
+.phone-title{font-size:0.58rem;color:#888;margin-top:1px;}
+.phone-city{font-size:0.52rem;color:#bbb;margin-top:2px;}
+.phone-bottom{background:#fff;border-top:1px solid #ebe9e3;display:flex;justify-content:space-around;padding:8px 4px;}
+.phone-bnav{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:0.48rem;color:#bbb;}
+.phone-bnav.a{color:var(--accent);}
+.phone-bnav-dot{width:16px;height:2px;background:currentColor;border-radius:2px;}
+
+/* STATS */
+.stats-bar{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:20px 5%;display:flex;justify-content:center;gap:48px;flex-wrap:wrap;}
+.stat{text-align:center;}
+.stat-n{font-size:1.8rem;font-weight:900;color:var(--accent);display:block;line-height:1;}
+.stat-l{font-size:0.78rem;color:var(--text2);margin-top:4px;}
+
+/* VS FACEBOOK */
+.vs-section{padding:80px 5%;max-width:900px;margin:0 auto;}
+.section-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);margin-bottom:12px;}
+.section-title{font-size:clamp(1.6rem,4vw,2.6rem);font-weight:900;letter-spacing:-1px;margin-bottom:40px;line-height:1.15;}
+.vs-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.vs-card{border-radius:16px;padding:28px 24px;}
+.vs-card.bad{background:#fff5f5;border:1.5px solid #ffd4d4;}
+.vs-card.good{background:#f0faf4;border:1.5px solid #b7dfc8;}
+.vs-header{font-weight:800;font-size:1rem;margin-bottom:20px;display:flex;align-items:center;gap:8px;}
+.vs-header.bad{color:#c0392b;}
+.vs-header.good{color:var(--accent2);}
+.vs-list{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.vs-list li{font-size:0.88rem;color:var(--text2);display:flex;gap:8px;line-height:1.4;}
+.vs-list li::before{font-size:0.8rem;flex-shrink:0;margin-top:1px;}
+.vs-card.bad .vs-list li::before{content:'✗';color:#e74c3c;}
+.vs-card.good .vs-list li::before{content:'✓';color:var(--accent2);font-weight:700;}
+
+/* CÓMO FUNCIONA */
+.como-section{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:80px 5%;}
+.como-inner{max-width:900px;margin:0 auto;}
+.pasos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;margin-top:40px;}
+.paso{text-align:center;padding:24px 16px;}
+.paso-num{width:48px;height:48px;background:var(--accent);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;margin:0 auto 16px;}
+.paso-title{font-weight:700;font-size:1rem;margin-bottom:8px;}
+.paso-desc{font-size:0.85rem;color:var(--text2);line-height:1.5;}
+
+/* GRATIS */
+.gratis-section{padding:80px 5%;max-width:700px;margin:0 auto;text-align:center;}
+.gratis-badge{display:inline-block;background:#f0faf4;border:1.5px solid #b7dfc8;color:var(--accent2);border-radius:100px;padding:6px 18px;font-size:0.82rem;font-weight:700;margin-bottom:20px;}
+.precio-card{background:var(--surface);border:2px solid var(--border);border-radius:20px;padding:36px;max-width:320px;margin:32px auto 0;}
+.precio-gratis{font-size:3rem;font-weight:900;color:var(--accent2);line-height:1;}
+.precio-sub{color:var(--text2);font-size:0.85rem;margin-top:6px;margin-bottom:24px;}
+.precio-features{list-style:none;text-align:left;display:flex;flex-direction:column;gap:10px;margin-bottom:24px;}
+.precio-features li{font-size:0.88rem;display:flex;gap:8px;align-items:flex-start;}
+.precio-features li::before{content:'✓';color:var(--accent2);font-weight:700;flex-shrink:0;}
+
+/* CTA FINAL */
+.cta-section{background:var(--accent);color:white;padding:80px 5%;text-align:center;}
+.cta-section h2{font-size:clamp(1.8rem,5vw,3rem);font-weight:900;letter-spacing:-1px;margin-bottom:12px;}
+.cta-section p{font-size:1rem;opacity:0.88;margin-bottom:32px;}
+.btn-cta{background:white;color:var(--accent);border:none;border-radius:12px;padding:16px 36px;font-family:var(--font);font-weight:800;font-size:1.05rem;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.2s;}
+.btn-cta:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2);}
+
+footer{padding:24px 5%;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+footer .logo{font-weight:900;color:var(--accent);}
+footer p{font-size:0.78rem;color:var(--text3);}
+
+@media(max-width:600px){
+  .vs-grid{grid-template-columns:1fr;}
+  .stats-bar{gap:24px;}
+  .phone-wrap{width:220px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Tu<span>Venta</span></div>
+  <a href="index.html" class="btn-entrar">Entrar a la app →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🇨🇺 Hecho para Cuba</div>
+  <h1>Compra y vende<br><span>sin el caos</span><br>de Facebook</h1>
+  <p class="hero-sub">TuVenta es el marketplace organizado de Cuba. Publica gratis, contacta directo por WhatsApp y encuentra lo que buscas en segundos.</p>
+  <div class="hero-btns">
+    <a href="index.html" class="btn-primary">
+      Empezar gratis →
+    </a>
+    <a href="#como" class="btn-secondary">¿Cómo funciona?</a>
+  </div>
+
+  <!-- PHONE MOCKUP -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-nav">
+          <div class="phone-logo">TuVenta</div>
+          <div class="phone-search">🔍 Buscar...</div>
+          <div class="phone-pub">+ Publicar</div>
+        </div>
+        <div class="phone-cats">
+          <div class="phone-cat active">🏠 Todo</div>
+          <div class="phone-cat">📺 Electro</div>
+          <div class="phone-cat">👕 Ropa</div>
+          <div class="phone-cat">🍎 Alimentos</div>
+        </div>
+        <div class="phone-grid">
+          <div class="phone-card">
+            <div class="phone-img dest">🌀<span class="phone-badge-dest">⭐ Dest.</span></div>
+            <div class="phone-card-body">
+              <div class="phone-price">4.500 CUP</div>
+              <div class="phone-title">Ventilador Orbit</div>
+              <div class="phone-city">📍 La Habana ✓</div>
+            </div>
+          </div>
+          <div class="phone-card">
+            <div class="phone-img">🍚</div>
+            <div class="phone-card-body">
+              <div class="phone-price">12.000 CUP</div>
+              <div class="phone-title">Arroz saco 100lb</div>
+              <div class="phone-city">📍 La Habana</div>
+            </div>
+          </div>
+          <div class="phone-card">
+            <div class="phone-img">👗</div>
+            <div class="phone-card-body">
+              <div class="phone-price">800 CUP</div>
+              <div class="phone-title">Ropa de niño</div>
+              <div class="phone-city">📍 Santiago</div>
+            </div>
+          </div>
+          <div class="phone-card">
+            <div class="phone-img">🔧</div>
+            <div class="phone-card-body">
+              <div class="phone-price">500 CUP</div>
+              <div class="phone-title">Electricista</div>
+              <div class="phone-city">📍 Holguín ✓</div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-bottom">
+          <div class="phone-bnav a"><div class="phone-bnav-dot"></div>Inicio</div>
+          <div class="phone-bnav"><div class="phone-bnav-dot"></div>Buscar</div>
+          <div class="phone-bnav" style="color:var(--accent)">＋</div>
+          <div class="phone-bnav"><div class="phone-bnav-dot"></div>Mis anuncios</div>
+          <div class="phone-bnav"><div class="phone-bnav-dot"></div>Perfil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat"><span class="stat-n">100%</span><div class="stat-l">Gratis para publicar</div></div>
+  <div class="stat"><span class="stat-n">8</span><div class="stat-l">Categorías organizadas</div></div>
+  <div class="stat"><span class="stat-n">WhatsApp</span><div class="stat-l">Contacto directo</div></div>
+  <div class="stat"><span class="stat-n">Cuba</span><div class="stat-l">Hecho para ti</div></div>
+</div>
+
+<!-- VS FACEBOOK -->
+<section class="vs-section">
+  <div class="section-label">La diferencia</div>
+  <h2 class="section-title">¿Por qué no usar<br>los grupos de Facebook?</h2>
+  <div class="vs-grid">
+    <div class="vs-card bad">
+      <div class="vs-header bad">😤 Grupos de Facebook</div>
+      <ul class="vs-list">
+        <li>Todo mezclado — ropa, comida, carros en el mismo sitio</li>
+        <li>Los anuncios se pierden en minutos</li>
+        <li>No sabes si el vendedor es de confianza</li>
+        <li>Imposible buscar algo específico</li>
+        <li>Lleno de spam y anuncios repetidos</li>
+        <li>No puedes filtrar por ciudad</li>
+      </ul>
+    </div>
+    <div class="vs-card good">
+      <div class="vs-header good">✓ TuVenta</div>
+      <ul class="vs-list">
+        <li>Categorías organizadas — encuentras lo que buscas</li>
+        <li>Tu anuncio se ve siempre, no desaparece</li>
+        <li>Vendedores verificados con badge verde</li>
+        <li>Búsqueda instantánea por nombre o descripción</li>
+        <li>Sin spam — moderado por el equipo</li>
+        <li>Filtra por ciudad para ver anuncios cercanos</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CÓMO FUNCIONA -->
+<section class="como-section" id="como">
+  <div class="como-inner">
+    <div class="section-label">Así de simple</div>
+    <h2 class="section-title">¿Cómo funciona?</h2>
+    <div class="pasos">
+      <div class="paso">
+        <div class="paso-num">1</div>
+        <div class="paso-title">Crea tu cuenta</div>
+        <div class="paso-desc">Solo necesitas tu número de WhatsApp y una contraseña. En 30 segundos estás dentro.</div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">2</div>
+        <div class="paso-title">Publica tu anuncio</div>
+        <div class="paso-desc">Añade una foto, el precio y tu ciudad. Tu anuncio aparece al instante para miles de personas.</div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">3</div>
+        <div class="paso-title">Contacta directo</div>
+        <div class="paso-desc">El comprador te escribe por WhatsApp directamente. Sin intermediarios, sin comisiones.</div>
+      </div>
+      <div class="paso">
+        <div class="paso-num">4</div>
+        <div class="paso-title">¡Listo!</div>
+        <div class="paso-desc">Haz tu negocio y cuando vendas elimina el anuncio. Así de fácil.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GRATIS -->
+<section class="gratis-section">
+  <div class="section-label">Precios</div>
+  <h2 class="section-title" style="font-size:clamp(1.6rem,4vw,2.4rem);letter-spacing:-1px;">Publicar en TuVenta<br>es completamente gratis</h2>
+  <div class="precio-card">
+    <div class="precio-gratis">Gratis</div>
+    <div class="precio-sub">Para siempre — sin sorpresas</div>
+    <ul class="precio-features">
+      <li>Hasta 10 anuncios activos</li>
+      <li>Fotos en cada anuncio</li>
+      <li>Contacto directo por WhatsApp</li>
+      <li>Visible para toda Cuba</li>
+      <li>Filtro por categoría y ciudad</li>
+      <li>Editar y eliminar cuando quieras</li>
+    </ul>
+    <a href="index.html" class="btn-primary" style="justify-content:center;">Publicar gratis ahora →</a>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>¿Listo para vender?</h2>
+  <p>Únete a TuVenta y llega a compradores de toda Cuba.</p>
+  <a href="index.html" class="btn-cta">Entrar a TuVenta →</a>
+</section>
+
+<footer>
+  <div class="logo">TuVenta</div>
+  <p>El marketplace de Cuba</p>
+  <p>© 2025 TuVenta</p>
+</footer>
+
+</body>
+</html>
