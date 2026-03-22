@@ -406,27 +406,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="overlay" id="overlay-reportar">
   <div class="auth-box">
     <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Reportar anuncio</div>
-    <div style="color:var(--text2);font-size:0.82rem;margin-bottom:16px;">¿Por qué quieres reportar este anuncio?</div>
-    <div class="form-group">
-      <select class="form-select" id="reporte-motivo">
-        <option value="">Selecciona un motivo</option>
-        <option value="fraude">🚨 Es un fraude o estafa</option>
-        <option value="spam">📢 Es spam o publicidad</option>
-        <option value="precio">💰 Precio abusivo o engañoso</option>
-        <option value="inapropiado">🔞 Contenido inapropiado</option>
-        <option value="duplicado">📋 Anuncio duplicado</option>
-        <option value="otro">❓ Otro motivo</option>
-      </select>
-    </div>
-    <button class="btn-submit" id="btn-reportar-submit" onclick="enviarReporte()">Enviar reporte</button>
-    <button class="btn-cancel" onclick="cerrarOverlay('overlay-reportar')">Cancelar</button>
-  </div>
-</div>
-
-<!-- OVERLAY REPORTAR -->
-<div class="overlay" id="overlay-reportar">
-  <div class="auth-box">
-    <div style="font-weight:800;font-size:1.1rem;margin-bottom:4px;">Reportar anuncio</div>
     <div style="font-size:0.82rem;color:var(--text2);margin-bottom:20px;">¿Por qué quieres reportar este anuncio?</div>
     <div class="form-group">
       <label class="form-label">Motivo</label>
@@ -754,7 +733,7 @@ async function verDetalle(id){
   const desc = a.descripcion || '';
   const waDigits = (a.whatsapp||'').replace(/[^0-9]/g,'');
   const wa = waDigits.startsWith('53') ? waDigits : '53'+waDigits;
-  const msg = encodeURIComponent('Hola '+nombre+', vi tu anuncio en TuVenta: "'+a.titulo+'" a '+Number(a.precio).toLocaleString()+' CUP. ¿Está disponible?');
+  const msg = encodeURIComponent('Hola '+nombre+', vi tu anuncio en TuVenta: "'+a.titulo+'" a '+Number(a.precio).toLocaleString()+' '+(a.moneda||'CUP')+'. ¿Está disponible?');
   const fecha = a.created_at ? new Date(a.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short'}) : '';
   const imgHtml = a.imagen_url ? '<img src="'+a.imagen_url+'" alt="'+a.titulo+'" style="width:100%;height:100%;object-fit:cover;">' : (EMOJIS[a.categoria]||'📦');
   const descHtml = desc ? '<div style="font-size:0.9rem;color:var(--text2);line-height:1.6;margin-bottom:16px;">'+desc+'</div>' : '';
@@ -911,6 +890,7 @@ async function publicarAnuncio(){
   const categoria = document.getElementById('pub-categoria').value;
   const precio = document.getElementById('pub-precio').value;
   const ciudad = document.getElementById('pub-ciudad').value;
+  const monedaSeleccionada = document.getElementById('pub-moneda')?.value || 'CUP';
   const desc = document.getElementById('pub-desc').value.trim();
   if(!titulo) return showToast('Escribe un título');
   if(!categoria) return showToast('Selecciona una categoría');
@@ -928,7 +908,7 @@ async function publicarAnuncio(){
   const {error} = await sb.from('anuncios').insert({
     titulo, descripcion:desc, precio:parseInt(precio), categoria, ciudad,
     whatsapp:wa, nombre_vendedor:nombre,
-    moneda: document.getElementById('pub-moneda').value || 'CUP',
+    moneda: monedaSeleccionada,
     verificado:false, urgente:false, activo:true,
     user_id: currentUser.id,
     imagen_url: imagenUrl
