@@ -537,12 +537,12 @@ async function cargarAnuncios(){
     .eq('activo',true)
     .order('created_at',{ascending:false})
     .limit(200);
-  if(error){ console.error('Error:', error.message); }
+  if(error){ console.error('Error cargando:', error.message); anuncios=[]; renderAnuncios(); return; }
   anuncios = (data||[]).map(a=>({
     ...a,
-    nombre_vendedor: a.perfiles?.nombre || a.nombre_vendedor || 'Vendedor',
-    whatsapp: a.perfiles?.whatsapp || a.whatsapp || '',
-    verificado: a.perfiles?.verificado || false
+    nombre_vendedor: (a.perfiles?.nombre) || a.nombre_vendedor || 'Vendedor',
+    whatsapp: (a.perfiles?.whatsapp) || a.whatsapp || '',
+    verificado: (a.perfiles?.verificado) || false
   })).sort((a,b)=>{
     if(a.destacado && !b.destacado) return -1;
     if(!a.destacado && b.destacado) return 1;
