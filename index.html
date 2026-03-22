@@ -532,10 +532,18 @@ async function doLogout(){
 
 // ─── ANUNCIOS ────────────────────────────────────────
 async function cargarAnuncios(){
-  const {data, error} = await sb.from('anuncios').select('*').eq('activo',true).order('created_at',{ascending:false}).limit(200);
+  const {data, error} = await sb.from('anuncios')
+    .select('*, perfiles(nombre, whatsapp, verificado)')
+    .eq('activo',true)
+    .order('created_at',{ascending:false})
+    .limit(200);
   if(error){ console.error('Error:', error.message); }
-  // Destacados primero, luego el resto por fecha
-  anuncios = (data||[]).sort((a,b)=>{
+  anuncios = (data||[]).map(a=>({
+    ...a,
+    nombre_vendedor: a.perfiles?.nombre || a.nombre_vendedor || 'Vendedor',
+    whatsapp: a.perfiles?.whatsapp || a.whatsapp || '',
+    verificado: a.perfiles?.verificado || false
+  })).sort((a,b)=>{
     if(a.destacado && !b.destacado) return -1;
     if(!a.destacado && b.destacado) return 1;
     return 0;

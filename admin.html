@@ -412,8 +412,9 @@ async function eliminarAnuncioDesdeReporte(anuncioId, reporteId){
 }
 
 async function ignorarReporte(id){
-  await sb.from('reportes').delete().eq('id', id);
-  document.getElementById('row-r-'+id)?.remove();
+  const {error} = await sb.from('reportes').delete().eq('id', id);
+  if(error){ alert('Error al ignorar: '+error.message); return; }
+  await cargarReportes();
 }
 
 function goTo(screen,el){
