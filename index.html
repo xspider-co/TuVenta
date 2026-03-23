@@ -135,6 +135,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
 .empty-state{text-align:center;padding:40px 20px;color:var(--text2);font-size:0.9rem;grid-column:1/-1;}
+.tipo-card{flex:1;border:2px solid var(--border);border-radius:14px;padding:20px 12px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--surface2);}
+.tipo-card:hover{border-color:var(--accent);background:#fff5f5;}
+.tipo-card.selected{border-color:var(--accent);background:#fff5f5;box-shadow:0 0 0 3px rgba(230,57,70,0.1);}
+.tipo-card-icon{font-size:2.2rem;margin-bottom:8px;}
+.tipo-card-title{font-weight:800;font-size:0.95rem;margin-bottom:4px;}
+.tipo-card-desc{font-size:0.72rem;color:var(--text2);line-height:1.4;}
 
 @media(min-width:600px){
   .anuncios-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));}
@@ -257,13 +263,34 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
+<!-- OVERLAY TIPO (paso 1) -->
+<div class="overlay" id="overlay-tipo">
+  <div class="auth-box" style="max-width:420px;">
+    <div style="font-weight:800;font-size:1.1rem;margin-bottom:6px;text-align:center;">¿Qué vas a publicar?</div>
+    <div style="font-size:0.82rem;color:var(--text2);text-align:center;margin-bottom:20px;">Elige el tipo de publicación</div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <div class="tipo-card" id="tipo-producto" onclick="seleccionarTipo('producto')">
+        <div class="tipo-card-icon">📦</div>
+        <div class="tipo-card-title">Producto</div>
+        <div class="tipo-card-desc">Tienes algo físico para vender — electrodoméstico, ropa, comida, vehículo...</div>
+      </div>
+      <div class="tipo-card" id="tipo-servicio" onclick="seleccionarTipo('servicio')">
+        <div class="tipo-card-icon">🔧</div>
+        <div class="tipo-card-title">Servicio</div>
+        <div class="tipo-card-desc">Ofreces tu trabajo o habilidad — electricista, plomero, clases, diseño...</div>
+      </div>
+    </div>
+    <button class="btn-cancel" onclick="cerrarOverlay('overlay-tipo')">Cancelar</button>
+  </div>
+</div>
+
 <!-- OVERLAY PUBLICAR (bottom sheet) -->
 <div class="overlay-bottom" id="overlay-publicar">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Publicar anuncio</div>
+    <div class="modal-title" id="pub-modal-title">Publicar anuncio</div>
     <div class="form-group">
-      <label class="form-label">Foto del producto</label>
+      <label class="form-label" id="pub-foto-label">Foto</label>
       <div class="foto-upload" id="foto-upload-area" onclick="document.getElementById('foto-input').click()">
         <div id="foto-preview" style="display:none;width:100%;aspect-ratio:4/3;border-radius:8px;overflow:hidden;margin-bottom:0;">
           <img id="foto-preview-img" style="width:100%;height:100%;object-fit:cover;">
@@ -288,40 +315,38 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <option value="inmuebles">🏡 Inmuebles</option>
       </select>
     </div>
-    <div class="form-group"><label class="form-label">Título</label><input class="form-input" type="text" id="pub-titulo" placeholder="Ej: Ventilador de techo en buen estado"></div>
-    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-input" id="pub-desc" rows="3" placeholder="Describe tu producto o servicio..." style="resize:none;"></textarea></div>
-    <div class="form-group">
-        <label class="form-label">Precio y moneda</label>
-        <div style="display:flex;gap:8px;">
-          <input class="form-input" type="number" id="pub-precio" placeholder="0" style="flex:1;">
-          <select id="pub-moneda" onchange="monedaPub=this.value" style="width:100px;flex-shrink:0;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 10px;font-family:var(--font);font-size:16px;color:var(--text);outline:none;">
-            <option value="CUP">CUP</option>
-            <option value="USD">USD</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-      <div class="form-group"><label class="form-label">Ciudad</label>
-        <select class="form-select" id="pub-ciudad">
-          <option value="">Ciudad / Provincia</option>
-          <option>La Habana</option>
-          <option>Artemisa</option>
-          <option>Mayabeque</option>
-          <option>Pinar del Río</option>
-          <option>Matanzas</option>
-          <option>Villa Clara</option>
-          <option>Cienfuegos</option>
-          <option>Sancti Spíritus</option>
-          <option>Ciego de Ávila</option>
-          <option>Camagüey</option>
-          <option>Las Tunas</option>
-          <option>Holguín</option>
-          <option>Granma</option>
-          <option>Santiago de Cuba</option>
-          <option>Guantánamo</option>
-          <option>Isla de la Juventud</option>
+    <div class="form-group"><label class="form-label">Título</label><input class="form-input" type="text" id="pub-titulo" placeholder=""></div>
+    <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-input" id="pub-desc" rows="3" placeholder="Describe lo que ofreces..." style="resize:none;"></textarea></div>
+    <div id="bloque-precio-producto" class="form-group">
+      <label class="form-label">Precio y moneda</label>
+      <div style="display:flex;gap:8px;">
+        <input class="form-input" type="number" id="pub-precio" placeholder="0" style="flex:1;">
+        <select id="pub-moneda" onchange="monedaPub=this.value" style="width:100px;flex-shrink:0;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 10px;font-family:var(--font);font-size:16px;color:var(--text);outline:none;">
+          <option value="CUP">CUP</option>
+          <option value="USD">USD</option>
         </select>
       </div>
+    </div>
+    <div id="bloque-precio-servicio" style="display:none;" class="form-group">
+      <label class="form-label">Tarifa</label>
+      <select class="form-select" id="pub-tarifa">
+        <option value="A convenir">💬 A convenir</option>
+        <option value="Por hora">⏱ Por hora</option>
+        <option value="Por trabajo">✅ Por trabajo</option>
+        <option value="Gratis">🎁 Gratis</option>
+      </select>
+      <input class="form-input" type="text" id="pub-tarifa-detalle" placeholder="Ej: entre 500 y 1000 CUP (opcional)" style="margin-top:8px;">
+    </div>
+    <div class="form-group"><label class="form-label">Ciudad</label>
+      <select class="form-select" id="pub-ciudad">
+        <option value="">Ciudad / Provincia</option>
+        <option>La Habana</option><option>Artemisa</option><option>Mayabeque</option>
+        <option>Pinar del Río</option><option>Matanzas</option><option>Villa Clara</option>
+        <option>Cienfuegos</option><option>Sancti Spíritus</option><option>Ciego de Ávila</option>
+        <option>Camagüey</option><option>Las Tunas</option><option>Holguín</option>
+        <option>Granma</option><option>Santiago de Cuba</option><option>Guantánamo</option>
+        <option>Isla de la Juventud</option>
+      </select>
     </div>
     <button class="btn-submit" id="btn-pub-submit" onclick="publicarAnuncio()">Publicar gratis</button>
     <button class="btn-cancel" onclick="cerrarPublicar()">Cancelar</button>
@@ -524,6 +549,7 @@ function cerrarPublicar(){
   cerrarOverlay('overlay-publicar');
   fotoFile = null;
   monedaPub = 'CUP';
+  tipoPub = 'producto';
   const sel = document.getElementById('pub-moneda');
   if(sel) sel.value = 'CUP';
   document.getElementById('foto-preview').style.display='none';
@@ -697,7 +723,7 @@ function renderAnuncios(){
         ${a.imagen_url ? `<img src="${a.imagen_url}" alt="${a.titulo}" loading="lazy">` : (EMOJIS[a.categoria]||'📦')}
       </div>
       <div class="anuncio-body">
-        <div class="anuncio-precio">${Number(a.precio).toLocaleString()} <span>${a.moneda||'CUP'}</span></div>
+        <div class="anuncio-precio">${a.moneda==='SERVICIO'?'<span style="color:var(--accent2)">Servicio</span>':Number(a.precio).toLocaleString()+' <span>'+(a.moneda||'CUP')+'</span>'}</div>
         <div class="anuncio-titulo">${a.titulo}</div>
         <div class="anuncio-meta">📍 ${a.ciudad} ${a.verificado?'<span class="anuncio-verificado">✓</span>':''}</div>
       </div>
@@ -759,7 +785,7 @@ async function verDetalle(id){
   const urgenteHtml = a.urgente ? '<span class="detalle-tag" style="color:var(--accent)">🔥 Urgente</span>' : '';
   document.getElementById('detalle-contenido').innerHTML =
     '<div class="detalle-img">'+imgHtml+'</div>'+
-    '<div class="detalle-precio">'+Number(a.precio).toLocaleString()+' '+(a.moneda||'CUP')+'</div>'+
+    '<div class="detalle-precio">'+(a.moneda==='SERVICIO'?'<span style="color:var(--accent2);font-size:1.4rem">🔧 Servicio</span>':Number(a.precio).toLocaleString()+' '+(a.moneda||'CUP'))+'</div>'+
     '<div class="detalle-titulo">'+a.titulo+'</div>'+
     '<div class="detalle-tags">'+
       '<span class="detalle-tag">'+(EMOJIS[a.categoria]||'')+' '+(CATS[a.categoria]||a.categoria)+'</span>'+
@@ -786,6 +812,7 @@ async function verDetalle(id){
 // ─── PUBLICAR ────────────────────────────────────────
 let fotoFile = null;
 let monedaPub = 'CUP';
+let tipoPub = 'producto';
 let editandoId = null;
 let reportandoId = null;
 
@@ -939,9 +966,29 @@ async function subirFoto(userId){
 }
 
 async function openPublicar(){
-  if(!currentUser){
-    abrirOverlay('overlay-auth');
-    return;
+  if(!currentUser){ abrirOverlay('overlay-auth'); return; }
+  // Resetear selección
+  document.getElementById('tipo-producto').classList.remove('selected');
+  document.getElementById('tipo-servicio').classList.remove('selected');
+  abrirOverlay('overlay-tipo');
+}
+
+function seleccionarTipo(tipo){
+  tipoPub = tipo;
+  cerrarOverlay('overlay-tipo');
+  // Adaptar formulario según tipo
+  if(tipo === 'servicio'){
+    document.getElementById('pub-modal-title').textContent = '🔧 Publicar servicio';
+    document.getElementById('pub-titulo').placeholder = 'Ej: Electricista certificado, Clases de inglés...';
+    document.getElementById('pub-categoria').value = 'servicios';
+    document.getElementById('bloque-precio-producto').style.display = 'none';
+    document.getElementById('bloque-precio-servicio').style.display = 'block';
+  } else {
+    document.getElementById('pub-modal-title').textContent = '📦 Publicar producto';
+    document.getElementById('pub-titulo').placeholder = 'Ej: Ventilador de techo en buen estado...';
+    document.getElementById('pub-categoria').value = '';
+    document.getElementById('bloque-precio-producto').style.display = 'block';
+    document.getElementById('bloque-precio-servicio').style.display = 'none';
   }
   abrirOverlay('overlay-publicar');
 }
@@ -955,7 +1002,7 @@ async function publicarAnuncio(){
   const desc = document.getElementById('pub-desc').value.trim();
   if(!titulo) return showToast('Escribe un título');
   if(!categoria) return showToast('Selecciona una categoría');
-  if(!precio) return showToast('Pon el precio');
+  if(tipoPub === 'producto' && !precio) return showToast('Pon el precio');
   if(!ciudad) return showToast('Selecciona tu ciudad');
   // Verificar límite de anuncios
   const {count} = await sb.from('anuncios').select('*',{count:'exact',head:true}).eq('user_id',currentUser.id).eq('activo',true);
@@ -966,10 +1013,19 @@ async function publicarAnuncio(){
   btn.disabled=true; btn.textContent='Subiendo foto...';
   const imagenUrl = await subirFoto(currentUser.id);
   btn.textContent='Publicando...';
+  let precioFinal = tipoPub === 'servicio' ? 0 : parseInt(precio);
+  let monedaFinal = tipoPub === 'servicio' ? 'SERVICIO' : monedaSeleccionada;
+  let tarifaTexto = '';
+  if(tipoPub === 'servicio'){
+    const tarifa = document.getElementById('pub-tarifa').value;
+    const detalle = document.getElementById('pub-tarifa-detalle').value.trim();
+    tarifaTexto = tarifa + (detalle ? ' - '+detalle : '');
+  }
+  const descFinal = tipoPub === 'servicio' ? (tarifaTexto ? '💰 ' + tarifaTexto + (desc ? ' - ' + desc : '') : desc||'') : desc||'';
   const {error} = await sb.from('anuncios').insert({
-    titulo, descripcion:desc, precio:parseInt(precio), categoria, ciudad,
+    titulo, descripcion:descFinal, precio:precioFinal, categoria, ciudad,
     whatsapp:wa, nombre_vendedor:nombre,
-    moneda: monedaSeleccionada,
+    moneda: monedaFinal,
     verificado:false, urgente:false, activo:true,
     user_id: currentUser.id,
     imagen_url: imagenUrl
