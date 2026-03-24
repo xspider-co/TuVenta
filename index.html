@@ -181,6 +181,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="cat-pill" onclick="filtrarCat('vehiculos',this)">🚗 Vehículos</div>
     <div class="cat-pill" onclick="filtrarCat('inmuebles',this)">🏡 Inmuebles</div>
     <div class="cat-pill" onclick="filtrarCat('mipyme',this)">🏪 MIPYMEs</div>
+    <div class="cat-pill" onclick="filtrarCat('salud',this)">💊 Salud y Belleza</div>
   </div>
 </div>
 <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;align-items:center;gap:8px;">
@@ -322,6 +323,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <option value="servicios">🔧 Servicios</option>
         <option value="vehiculos">🚗 Vehículos</option>
         <option value="inmuebles">🏡 Inmuebles</option>
+        <option value="salud">💊 Salud y Belleza</option>
       </select>
     </div>
     <div class="form-group"><label class="form-label">Título</label><input class="form-input" type="text" id="pub-titulo" placeholder=""></div>
@@ -408,6 +410,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <option value="vehiculos">🚗 Vehículos</option>
         <option value="inmuebles">🏡 Inmuebles</option>
         <option value="mipyme">🏪 MIPYME / Negocio</option>
+        <option value="salud">💊 Salud y Belleza</option>
       </select>
     </div>
     <div class="form-group"><label class="form-label">Título</label><input class="form-input" type="text" id="edit-titulo"></div>
@@ -529,8 +532,8 @@ const sb = supabase.createClient(SURL, SKEY, {
   }
 });
 
-const EMOJIS = {electrodomesticos:'📺',ropa:'👕',alimentos:'🍎',servicios:'🔧',vehiculos:'🚗',inmuebles:'🏡',mipyme:'🏪'};
-const CATS = {electrodomesticos:'Electrodomésticos',ropa:'Ropa y calzado',alimentos:'Alimentos',servicios:'Servicios',vehiculos:'Vehículos',inmuebles:'Inmuebles',mipyme:'MIPYMEs'};
+const EMOJIS = {electrodomesticos:'📺',ropa:'👕',alimentos:'🍎',servicios:'🔧',vehiculos:'🚗',inmuebles:'🏡',mipyme:'🏪',salud:'💊'};
+const CATS = {electrodomesticos:'Electrodomésticos',ropa:'Ropa y calzado',alimentos:'Alimentos',servicios:'Servicios',vehiculos:'Vehículos',inmuebles:'Inmuebles',mipyme:'MIPYMEs',salud:'Salud y Belleza'};
 
 let currentUser = null;
 let currentPerfil = null;
@@ -985,17 +988,25 @@ async function openPublicar(){
 function seleccionarTipo(tipo){
   tipoPub = tipo;
   cerrarOverlay('overlay-tipo');
-  // Adaptar formulario según tipo
+  const catSelect = document.getElementById('pub-categoria');
   if(tipo === 'servicio'){
     document.getElementById('pub-modal-title').textContent = '🔧 Publicar servicio';
     document.getElementById('pub-titulo').placeholder = 'Ej: Electricista certificado, Clases de inglés...';
-    document.getElementById('pub-categoria').value = 'servicios';
+    // Fijar categoría en servicios y ocultar el selector
+    catSelect.value = 'servicios';
+    catSelect.parentElement.style.display = 'none';
     document.getElementById('bloque-precio-producto').style.display = 'none';
     document.getElementById('bloque-precio-servicio').style.display = 'block';
   } else {
     document.getElementById('pub-modal-title').textContent = '📦 Publicar producto';
     document.getElementById('pub-titulo').placeholder = 'Ej: Ventilador de techo en buen estado...';
-    document.getElementById('pub-categoria').value = '';
+    // Mostrar selector sin la opción de servicios
+    catSelect.value = '';
+    catSelect.parentElement.style.display = 'block';
+    // Ocultar opción servicios en el selector de producto
+    Array.from(catSelect.options).forEach(opt => {
+      opt.style.display = opt.value === 'servicios' ? 'none' : '';
+    });
     document.getElementById('bloque-precio-producto').style.display = 'block';
     document.getElementById('bloque-precio-servicio').style.display = 'none';
   }
