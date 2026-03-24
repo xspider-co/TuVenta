@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TuVenta — Descarga o entra</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  font-family:'Figtree',sans-serif;
+  background:#f7f6f2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:24px;
+}
+
+.card{
+  background:white;
+  border-radius:28px;
+  padding:40px 32px;
+  width:100%;
+  max-width:380px;
+  text-align:center;
+  box-shadow:0 8px 40px rgba(0,0,0,0.08);
+}
+
+.logo-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.logo-icon{
+  width:52px;height:52px;
+  background:#e63946;
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.logo-text{
+  font-size:1.8rem;
+  font-weight:900;
+  color:#e63946;
+  letter-spacing:-1px;
+}
+
+.logo-text span{color:#999;font-weight:400;}
+
+.tagline{
+  font-size:0.88rem;
+  color:#888;
+  margin-bottom:32px;
+  line-height:1.5;
+}
+
+.tagline strong{color:#1a1a1a;}
+
+.btns{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:16px 20px;
+  border-radius:14px;
+  font-family:'Figtree',sans-serif;
+  font-weight:700;
+  font-size:1rem;
+  text-decoration:none;
+  transition:all 0.2s;
+  cursor:pointer;
+  border:none;
+}
+
+.btn-android{
+  background:#e63946;
+  color:white;
+  box-shadow:0 4px 16px rgba(230,57,70,0.3);
+}
+
+.btn-android:hover{
+  opacity:0.88;
+  transform:translateY(-1px);
+}
+
+.btn-web{
+  background:#f0efe9;
+  color:#1a1a1a;
+  border:1.5px solid #e8e6df;
+}
+
+.btn-web:hover{
+  background:#e8e6df;
+  transform:translateY(-1px);
+}
+
+.btn-icon{font-size:1.3rem;}
+
+.btn-info{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+}
+
+.btn-title{font-size:0.95rem;font-weight:700;line-height:1;}
+.btn-sub{font-size:0.72rem;opacity:0.75;margin-top:3px;font-weight:500;}
+
+.divider{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:4px 0;
+  color:#ccc;
+  font-size:0.75rem;
+}
+.divider::before,.divider::after{
+  content:'';flex:1;height:1px;background:#e8e6df;
+}
+
+.footer{
+  margin-top:28px;
+  font-size:0.72rem;
+  color:#bbb;
+}
+
+.flag{font-size:1.1rem;}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="logo-wrap">
+    <div class="logo-icon">
+      <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
+        <path d="M20 38 Q20 18 50 18 Q80 18 80 38" stroke="white" stroke-width="10" stroke-linecap="round" fill="none"/>
+        <rect x="12" y="38" width="76" height="50" rx="10" fill="white"/>
+        <text x="50" y="80" font-family="Arial Black" font-weight="900" font-size="38" fill="#e63946" text-anchor="middle">V</text>
+      </svg>
+    </div>
+    <div class="logo-text">Tu<span>Venta</span></div>
+  </div>
+
+  <div class="tagline">
+    <strong>El marketplace de Cuba 🇨🇺</strong><br>
+    Compra y vende gratis con foto<br>y contacto directo por WhatsApp
+  </div>
+
+  <div class="btns">
+
+    <a href="https://github.com/xspider-co/TuVenta/releases/download/v1.0.0/TuVenta" class="btn btn-android">
+      <span class="btn-icon">📱</span>
+      <div class="btn-info">
+        <span class="btn-title">Descargar para Android</span>
+        <span class="btn-sub">Archivo APK — instalación directa</span>
+      </div>
+    </a>
+
+    <div class="divider">o</div>
+
+    <a href="https://tu-venta.vercel.app" class="btn btn-web">
+      <span class="btn-icon">🌐</span>
+      <div class="btn-info">
+        <span class="btn-title">Abrir en el navegador</span>
+        <span class="btn-sub">Para iPhone, PC o cualquier dispositivo</span>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="footer">
+    <span class="flag">🇨🇺</span> Hecho para Cuba · Gratis para siempre
+  </div>
+
+</div>
+</body>
+</html>
