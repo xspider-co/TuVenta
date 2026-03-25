@@ -137,6 +137,10 @@ tr:hover td{background:var(--surface2);}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         Usuarios
       </div>
+      <div class="sidebar-item" onclick="goTo('mipymes',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        MIPYMEs
+      </div>
       <div class="sidebar-item" onclick="goTo('reportes',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         Reportes
@@ -188,6 +192,20 @@ tr:hover td{background:var(--surface2);}
         </div>
       </div>
 
+      <!-- MIPYMES -->
+      <div class="screen" id="screen-mipymes">
+        <div class="section-title">
+          MIPYMEs verificadas
+          <button onclick="abrirFormMipyme()" style="background:var(--accent);color:white;border:none;border-radius:8px;padding:7px 16px;font-family:var(--font);font-weight:700;font-size:0.82rem;cursor:pointer;">+ Nueva MIPYME</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>Categoría</th><th>Ciudad</th><th>WhatsApp</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="tabla-mipymes"></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- REPORTES -->
       <div class="screen" id="screen-reportes">
         <div class="section-title">Reportes de usuarios</div>
@@ -202,6 +220,35 @@ tr:hover td{background:var(--surface2);}
       <!-- REPORTES -->
 </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MIPYME -->
+<div id="modal-mipyme" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:400;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:16px;padding:28px 24px;width:calc(100% - 32px);max-width:480px;max-height:90vh;overflow-y:auto;">
+    <div style="font-weight:800;font-size:1.1rem;margin-bottom:20px;" id="modal-mipyme-title">Nueva MIPYME</div>
+    <div class="field"><label>Nombre del negocio</label><input type="text" id="m-nombre" class="field input" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;"></div>
+    <div class="field"><label>Descripción</label><textarea id="m-desc" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;resize:none;" rows="3"></textarea></div>
+    <div class="field"><label>Categoría</label>
+      <select id="m-categoria" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;">
+        <option value="electrodomesticos">📺 Electrodomésticos</option>
+        <option value="ropa">👕 Ropa y calzado</option>
+        <option value="alimentos">🍎 Alimentos</option>
+        <option value="servicios">🔧 Servicios</option>
+        <option value="vehiculos">🚗 Vehículos</option>
+        <option value="inmuebles">🏡 Inmuebles</option>
+        <option value="salud">💊 Salud y Belleza</option>
+      </select>
+    </div>
+    <div class="field"><label>Ciudad</label><input type="text" id="m-ciudad" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;" placeholder="La Habana"></div>
+    <div class="field"><label>WhatsApp (sin +53)</label><input type="text" id="m-whatsapp" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;" placeholder="5XXXXXXX"></div>
+    <div class="field"><label>Instagram (opcional)</label><input type="text" id="m-instagram" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;" placeholder="@usuario"></div>
+    <div class="field"><label>Horario (opcional)</label><input type="text" id="m-horario" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;" placeholder="Lun-Vie 9am-6pm"></div>
+    <div class="field"><label>URL del logo (opcional)</label><input type="text" id="m-logo" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;" placeholder="https://..."></div>
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button onclick="guardarMipyme()" style="flex:1;background:var(--accent);color:white;border:none;border-radius:8px;padding:11px;font-family:var(--font);font-weight:700;cursor:pointer;" id="btn-guardar-mipyme">Guardar</button>
+      <button onclick="cerrarModalMipyme()" style="flex:1;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:11px;font-family:var(--font);font-weight:600;cursor:pointer;">Cancelar</button>
     </div>
   </div>
 </div>
@@ -248,7 +295,7 @@ async function doLogout(){
 }
 
 async function cargarTodo(){
-  await Promise.all([cargarStats(),cargarAnuncios(),cargarUsuarios(),cargarReportes()]);
+  await Promise.all([cargarStats(),cargarAnuncios(),cargarUsuarios(),cargarReportes(),cargarMipymes()]);
 }
 
 async function cargarReportes(){
@@ -417,11 +464,104 @@ async function ignorarReporte(id){
   await cargarReportes();
 }
 
+let editandoMipymeId = null;
+
+async function cargarMipymes(){
+  const {data} = await sb.from('mipymes').select('*').order('created_at',{ascending:false});
+  const tbody = document.getElementById('tabla-mipymes');
+  if(!data?.length){
+    tbody.innerHTML='<tr><td colspan="6"><div class="empty"><div class="empty-icon">🏪</div>No hay MIPYMEs todavía</div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(m=>`
+    <tr>
+      <td><div style="font-weight:600;">${m.nombre}</div><div style="font-size:0.72rem;color:var(--text2);">${m.descripcion?.slice(0,40)||''}...</div></td>
+      <td>${CATS[m.categoria]||m.categoria}</td>
+      <td>${m.ciudad}</td>
+      <td style="color:var(--text2);">+53 ${m.whatsapp}</td>
+      <td>
+        ${m.activa?'<span class="badge badge-green">Activa</span>':'<span class="badge badge-gray">Inactiva</span>'}
+        ${m.destacada?'<span class="badge badge-yellow" style="margin-left:4px;">⭐ Destacada</span>':''}
+      </td>
+      <td>
+        <button class="btn-accion blue" onclick="editarMipyme(${m.id})">Editar</button>
+        <button class="btn-accion ${m.destacada?'':'green'}" onclick="toggleDestacadaMipyme(${m.id},${m.destacada})">${m.destacada?'Quitar destaque':'Destacar'}</button>
+        <button class="btn-accion danger" onclick="eliminarMipyme(${m.id})">Eliminar</button>
+      </td>
+    </tr>`).join('');
+}
+
+function abrirFormMipyme(){
+  editandoMipymeId = null;
+  document.getElementById('modal-mipyme-title').textContent = 'Nueva MIPYME';
+  ['m-nombre','m-desc','m-ciudad','m-whatsapp','m-instagram','m-horario','m-logo'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('m-categoria').value='alimentos';
+  document.getElementById('modal-mipyme').style.display='flex';
+}
+
+async function editarMipyme(id){
+  const {data:m} = await sb.from('mipymes').select('*').eq('id',id).single();
+  if(!m) return;
+  editandoMipymeId = id;
+  document.getElementById('modal-mipyme-title').textContent = 'Editar MIPYME';
+  document.getElementById('m-nombre').value = m.nombre||'';
+  document.getElementById('m-desc').value = m.descripcion||'';
+  document.getElementById('m-categoria').value = m.categoria||'';
+  document.getElementById('m-ciudad').value = m.ciudad||'';
+  document.getElementById('m-whatsapp').value = m.whatsapp||'';
+  document.getElementById('m-instagram').value = m.instagram||'';
+  document.getElementById('m-horario').value = m.horario||'';
+  document.getElementById('m-logo').value = m.logo_url||'';
+  document.getElementById('modal-mipyme').style.display='flex';
+}
+
+function cerrarModalMipyme(){
+  document.getElementById('modal-mipyme').style.display='none';
+}
+
+async function guardarMipyme(){
+  const datos = {
+    nombre: document.getElementById('m-nombre').value.trim(),
+    descripcion: document.getElementById('m-desc').value.trim(),
+    categoria: document.getElementById('m-categoria').value,
+    ciudad: document.getElementById('m-ciudad').value.trim(),
+    whatsapp: document.getElementById('m-whatsapp').value.trim(),
+    instagram: document.getElementById('m-instagram').value.trim(),
+    horario: document.getElementById('m-horario').value.trim(),
+    logo_url: document.getElementById('m-logo').value.trim(),
+  };
+  if(!datos.nombre||!datos.ciudad||!datos.whatsapp){ alert('Nombre, ciudad y WhatsApp son obligatorios'); return; }
+  const btn = document.getElementById('btn-guardar-mipyme');
+  btn.disabled=true; btn.textContent='Guardando...';
+  if(editandoMipymeId){
+    await sb.from('mipymes').update(datos).eq('id',editandoMipymeId);
+  } else {
+    await sb.from('mipymes').insert(datos);
+  }
+  btn.disabled=false; btn.textContent='Guardar';
+  cerrarModalMipyme();
+  await cargarMipymes();
+}
+
+async function toggleDestacadaMipyme(id, actual){
+  await sb.from('mipymes').update({destacada:!actual}).eq('id',id);
+  await cargarMipymes();
+}
+
+async function eliminarMipyme(id){
+  if(!confirm('¿Eliminar esta MIPYME?')) return;
+  await sb.from('mipymes').delete().eq('id',id);
+  await cargarMipymes();
+}
+
 function goTo(screen,el){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+screen).classList.add('active');
   el.classList.add('active');
+  if(screen==='mipymes') cargarMipymes();
 }
 
 // Verificar sesión al cargar
