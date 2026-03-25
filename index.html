@@ -635,6 +635,7 @@ async function doRegistro(){
   if(digits.length < 8) return mostrarAuthError('Número de WhatsApp inválido — debe tener 8 dígitos');
   if(digits.length > 8) return mostrarAuthError('Número de WhatsApp inválido — solo 8 dígitos sin el +53');
   if(!digits.startsWith('5')) return mostrarAuthError('Los números cubanos empiezan por 5');
+  // Guardar siempre los 8 dígitos exactos que el usuario escribió
   // Verificar duplicado
   const {data:existe} = await sb.from('perfiles').select('id').eq('whatsapp',digits).maybeSingle();
   if(existe) return mostrarAuthError('Este número ya tiene una cuenta. Entra con tu número y contraseña.');
@@ -786,8 +787,9 @@ async function verDetalle(id){
   if(!a){ showToast('Anuncio no disponible'); return; }
   const nombre = a.nombre_vendedor || 'Vendedor';
   const desc = a.descripcion || '';
+  // El número en BD son los 8 dígitos exactos — siempre añadir 53 del país
   const waDigits = (a.whatsapp||'').replace(/[^0-9]/g,'');
-  const wa = waDigits.startsWith('53') ? waDigits : '53'+waDigits;
+  const wa = '53' + waDigits;
   const msg = encodeURIComponent('Hola '+nombre+', vi tu anuncio en TuVenta: "'+a.titulo+'" a '+Number(a.precio).toLocaleString()+' '+(a.moneda||'CUP')+'. ¿Está disponible?');
   const fecha = a.created_at ? new Date(a.created_at).toLocaleDateString('es-ES',{day:'numeric',month:'short'}) : '';
   const imgHtml = a.imagen_url ? '<img src="'+a.imagen_url+'" alt="'+a.titulo+'" style="width:100%;height:100%;object-fit:cover;">' : (EMOJIS[a.categoria]||'📦');
@@ -1027,7 +1029,8 @@ async function publicarAnuncio(){
   // Verificar límite de anuncios
   const {count} = await sb.from('anuncios').select('*',{count:'exact',head:true}).eq('user_id',currentUser.id).eq('activo',true);
   if(count>=10) return showToast('Has alcanzado el límite de 10 anuncios activos');
-  const wa = currentPerfil ? '53'+(currentPerfil.whatsapp||'').replace(/[^0-9]/g,'').replace(/^53/,'') : '';
+  // Usar los 8 dígitos exactos guardados — siempre añadir 53 del país sin quitar nada
+  const wa = currentPerfil ? '53'+(currentPerfil.whatsapp||'').replace(/[^0-9]/g,'') : '';
   const nombre = currentPerfil?.nombre || '';
   const btn = document.getElementById('btn-pub-submit');
   btn.disabled=true; btn.textContent='Subiendo foto...';
