@@ -791,7 +791,8 @@ function renderAnuncios(){
   const inicio = (paginaActual-1)*POR_PAGINA;
   const paginada = lista.slice(inicio, inicio+POR_PAGINA);
   const grid = document.getElementById('anuncios-grid');
-  document.getElementById('conteo').textContent = total+' anuncio'+(total!==1?'s':'');
+  const conteoEl = document.getElementById('conteo');
+  if(conteoEl) conteoEl.textContent = total+' anuncio'+(total!==1?'s':'');
   document.getElementById('section-titulo').textContent = catActual==='todos' ? 'Anuncios recientes' : (CATS[catActual]||'Anuncios');
   if(!paginada.length){
     grid.innerHTML='<div class="empty-state"><div style="font-size:3rem;margin-bottom:12px">🔍</div><div style="font-weight:700">No hay anuncios aquí todavía</div><div style="font-size:0.85rem;margin-top:4px">Sé el primero en publicar</div></div>';
@@ -911,6 +912,29 @@ async function enviarReporte(){
   const motivo = document.getElementById('reporte-motivo').value;
   if(!motivo) return showToast('Selecciona un motivo');
   const btn = document.getElementById('btn-reporte-submit');
+  btn.disabled=true; btn.textContent='Enviando...';
+  const {error} = await sb.from('reportes').insert({
+    anuncio_id: reportandoId,
+    user_id: currentUser.id,
+    motivo
+  });
+  btn.disabled=false; btn.textContent='Enviar reporte';
+  if(error){ showToast('Error al enviar el reporte'); return; }
+  cerrarOverlay('overlay-reportar');
+  showToast('✓ Reporte enviado, lo revisaremos pronto');
+}
+
+function abrirReporte(id){
+  reportandoId = id;
+  document.getElementById('reporte-motivo').value = '';
+  cerrarOverlay('overlay-detalle');
+  abrirOverlay('overlay-reportar');
+}
+
+async function enviarReporte(){
+  const motivo = document.getElementById('reporte-motivo').value;
+  if(!motivo) return showToast('Selecciona un motivo');
+  const btn = document.getElementById('btn-reportar-submit');
   btn.disabled=true; btn.textContent='Enviando...';
   const {error} = await sb.from('reportes').insert({
     anuncio_id: reportandoId,
@@ -1197,7 +1221,7 @@ async function verMipyme(id){
   const fotos = m.fotos_urls ? m.fotos_urls.split(',').map(f=>f.trim()).filter(Boolean) : [];
   const galeriaHtml = fotos.length ?
     '<div style="margin-bottom:16px;"><div style="font-weight:700;font-size:0.85rem;margin-bottom:10px;">📸 Galería</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">' +
-    fotos.map(url => '<div style="aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--surface2);"><img src="'+url+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.style.display='none'"></div>').join('') +
+    fotos.map(url => '<div style="aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--surface2);"><img src="'+url+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.style.display=\'none\'"></div>').join('') +
     '</div></div>' : '';
 
   document.getElementById('mipyme-detalle-contenido').innerHTML =
