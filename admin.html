@@ -532,20 +532,37 @@ async function guardarMipyme(){
     whatsapp: document.getElementById('m-whatsapp').value.trim(),
     instagram: document.getElementById('m-instagram').value.trim(),
     horario: document.getElementById('m-horario').value.trim(),
-    logo_url: document.getElementById('m-logo').value.trim(),
-    fotos_urls: document.getElementById('m-fotos').value.trim(),
+    logo_url: normalizarUrlDrive(document.getElementById('m-logo').value.trim()),
+    fotos_urls: normalizarFotosDrive(document.getElementById('m-fotos').value.trim()),
   };
   if(!datos.nombre||!datos.ciudad||!datos.whatsapp){ alert('Nombre, ciudad y WhatsApp son obligatorios'); return; }
   const btn = document.getElementById('btn-guardar-mipyme');
   btn.disabled=true; btn.textContent='Guardando...';
+  let error;
   if(editandoMipymeId){
-    await sb.from('mipymes').update(datos).eq('id',editandoMipymeId);
+    ({error} = await sb.from('mipymes').update(datos).eq('id',editandoMipymeId));
   } else {
-    await sb.from('mipymes').insert(datos);
+    ({error} = await sb.from('mipymes').insert({...datos, activa:true, destacada:false}));
   }
   btn.disabled=false; btn.textContent='Guardar';
+  if(error){ alert('Error al guardar: '+error.message); return; }
   cerrarModalMipyme();
   await cargarMipymes();
+}
+
+// Convierte URL de Drive al formato directo que funciona como imagen
+function normalizarUrlDrive(url){
+  if(!url) return '';
+  // Si ya es una URL directa de Drive (export o uc)
+  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(m) return 'https://drive.google.com/uc?export=view&id='+m[1];
+  return url;
+}
+
+// Normaliza múltiples URLs de Drive separadas por coma
+function normalizarFotosDrive(urls){
+  if(!urls) return '';
+  return urls.split(',').map(u=>normalizarUrlDrive(u.trim())).filter(Boolean).join(',');
 }
 
 async function toggleDestacadaMipyme(id, actual){
