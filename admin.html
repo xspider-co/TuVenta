@@ -246,6 +246,7 @@ tr:hover td{background:var(--surface2);}
     <div class="field"><label>Instagram (opcional)</label><input type="text" id="m-instagram" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;" placeholder="@usuario"></div>
     <div class="field"><label>Horario (opcional)</label><input type="text" id="m-horario" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;" placeholder="Lun-Vie 9am-6pm"></div>
     <div class="field"><label>URL del logo (opcional)</label><input type="text" id="m-logo" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;" placeholder="https://..."></div>
+    <div class="field"><label>Fotos del catálogo (URLs separadas por coma)</label><textarea id="m-fotos" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:0.95rem;outline:none;resize:none;" rows="2" placeholder="https://foto1.jpg, https://foto2.jpg"></textarea></div>
     <div style="display:flex;gap:8px;margin-top:16px;">
       <button onclick="guardarMipyme()" style="flex:1;background:var(--accent);color:white;border:none;border-radius:8px;padding:11px;font-family:var(--font);font-weight:700;cursor:pointer;" id="btn-guardar-mipyme">Guardar</button>
       <button onclick="cerrarModalMipyme()" style="flex:1;background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:11px;font-family:var(--font);font-weight:600;cursor:pointer;">Cancelar</button>
@@ -494,7 +495,7 @@ async function cargarMipymes(){
 function abrirFormMipyme(){
   editandoMipymeId = null;
   document.getElementById('modal-mipyme-title').textContent = 'Nueva MIPYME';
-  ['m-nombre','m-desc','m-ciudad','m-whatsapp','m-instagram','m-horario','m-logo'].forEach(id=>{
+  ['m-nombre','m-desc','m-ciudad','m-whatsapp','m-instagram','m-horario','m-logo','m-fotos'].forEach(id=>{
     document.getElementById(id).value='';
   });
   document.getElementById('m-categoria').value='alimentos';
@@ -514,6 +515,7 @@ async function editarMipyme(id){
   document.getElementById('m-instagram').value = m.instagram||'';
   document.getElementById('m-horario').value = m.horario||'';
   document.getElementById('m-logo').value = m.logo_url||'';
+  document.getElementById('m-fotos').value = m.fotos_urls||'';
   document.getElementById('modal-mipyme').style.display='flex';
 }
 
@@ -531,6 +533,7 @@ async function guardarMipyme(){
     instagram: document.getElementById('m-instagram').value.trim(),
     horario: document.getElementById('m-horario').value.trim(),
     logo_url: document.getElementById('m-logo').value.trim(),
+    fotos_urls: document.getElementById('m-fotos').value.trim(),
   };
   if(!datos.nombre||!datos.ciudad||!datos.whatsapp){ alert('Nombre, ciudad y WhatsApp son obligatorios'); return; }
   const btn = document.getElementById('btn-guardar-mipyme');
