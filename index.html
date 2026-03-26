@@ -923,29 +923,6 @@ async function enviarReporte(){
   showToast('✓ Reporte enviado, lo revisaremos pronto');
 }
 
-function abrirReporte(id){
-  reportandoId = id;
-  document.getElementById('reporte-motivo').value = '';
-  cerrarOverlay('overlay-detalle');
-  abrirOverlay('overlay-reportar');
-}
-
-async function enviarReporte(){
-  const motivo = document.getElementById('reporte-motivo').value;
-  if(!motivo) return showToast('Selecciona un motivo');
-  const btn = document.getElementById('btn-reportar-submit');
-  btn.disabled=true; btn.textContent='Enviando...';
-  const {error} = await sb.from('reportes').insert({
-    anuncio_id: reportandoId,
-    user_id: currentUser.id,
-    motivo
-  });
-  btn.disabled=false; btn.textContent='Enviar reporte';
-  if(error){ showToast('Error al enviar el reporte'); return; }
-  cerrarOverlay('overlay-reportar');
-  showToast('✓ Reporte enviado, lo revisaremos pronto');
-}
-
 let editFotoFile = null;
 
 function previewEditFoto(input){
