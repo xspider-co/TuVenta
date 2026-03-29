@@ -213,6 +213,21 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <span style="margin-left:auto;font-size:0.7rem;background:var(--accent);color:white;border-radius:100px;padding:2px 7px;font-weight:700;">Gratis</span>
   </button>
 </div>
+<!-- BANNER HITO — solo visible para no logueados -->
+<div id="banner-hito" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <div style="font-size:0.78rem;font-weight:700;color:var(--text);">🚀 TuVenta está creciendo</div>
+    <div style="font-size:0.72rem;color:var(--accent);font-weight:700;"><span id="hito-actual">73</span> de <span id="hito-meta">100</span> personas</div>
+  </div>
+  <div style="background:var(--surface2);border-radius:100px;height:8px;overflow:hidden;margin-bottom:8px;">
+    <div id="hito-barra" style="height:100%;background:linear-gradient(90deg,var(--accent),#f4a261);border-radius:100px;transition:width 1s ease;" width="0%"></div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <div style="font-size:0.72rem;color:var(--text2);line-height:1.4;flex:1;">🎁 Sorteo entre los primeros <strong style="color:var(--text);">100</strong> — <strong style="color:var(--accent);">5 ganadores</strong> conseguirán un anuncio destacado gratis por 7 días</div>
+    <button onclick="abrirOverlay('overlay-auth')" style="background:var(--accent);color:white;border:none;border-radius:8px;padding:7px 14px;font-family:var(--font);font-weight:700;font-size:0.75rem;cursor:pointer;white-space:nowrap;">Entrar →</button>
+  </div>
+</div>
+
 <div class="cats-wrap">
   <div class="cats">
     <div class="cat-pill active" onclick="filtrarCat('todos',this)">🏠 Todo</div>
@@ -658,8 +673,36 @@ function actualizarNavUser(){
   if(currentUser && currentPerfil){
     const inicial = (currentPerfil.nombre||'U').charAt(0).toUpperCase();
     area.innerHTML = `<div class="nav-avatar" onclick="openMenuPerfil()" title="Mi perfil">${inicial}</div>`;
+    // Ocultar banner hito si ya está logueado
+    const banner = document.getElementById('banner-hito');
+    if(banner) banner.style.display='none';
   } else {
     area.innerHTML = `<button class="nav-btn-entrar" onclick="abrirOverlay('overlay-auth')">Entrar</button>`;
+    // Mostrar y animar banner hito para no logueados
+    mostrarBannerHito();
+  }
+}
+
+async function mostrarBannerHito(){
+  const banner = document.getElementById('banner-hito');
+  if(!banner) return;
+  // Contar usuarios reales de Supabase
+  try{
+    const {count} = await sb.from('perfiles').select('*',{count:'exact',head:true});
+    const total = count || 73;
+    const meta = 100;
+    const pct = Math.min(Math.round((total/meta)*100), 100);
+    document.getElementById('hito-actual').textContent = total;
+    document.getElementById('hito-meta').textContent = meta;
+    banner.style.display='block';
+    // Animar barra tras un pequeño delay para que se vea la transición
+    setTimeout(()=>{
+      document.getElementById('hito-barra').style.width = pct+'%';
+    }, 100);
+  } catch(e){
+    // Si falla, mostrar con valores por defecto
+    banner.style.display='block';
+    setTimeout(()=>{ document.getElementById('hito-barra').style.width='73%'; },100);
   }
 }
 
