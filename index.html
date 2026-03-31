@@ -236,7 +236,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="cat-pill" onclick="filtrarCat('alimentos',this)">🍎 Alimentos</div>
     <div class="cat-pill" onclick="filtrarCat('servicios',this)">🔧 Servicios</div>
     <div class="cat-pill" onclick="filtrarCat('vehiculos',this)">🚗 Vehículos</div>
-    <div class="cat-pill" onclick="filtrarCat('inmuebles',this)">🏡 Inmuebles</div>
+    <div class="cat-pill" onclick="filtrarCat('casas',this)">🏡 Casas</div>
+    <div class="cat-pill" onclick="filtrarCat('hogar',this)">🛋️ Hogar</div>
+    <div class="cat-pill" onclick="filtrarCat('accesorios',this)">💍 Accesorios</div>
     <div class="cat-pill" onclick="filtrarCat('salud',this)">💊 Salud y Belleza</div>
   </div>
 </div>
@@ -374,16 +376,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <input type="file" id="foto-input" accept="image/*" style="display:none;" onchange="previewFoto(this)">
     </div>
     <div class="form-group"><label class="form-label">Categoría</label>
-      <select class="form-select" id="pub-categoria">
+      <select class="form-select" id="pub-categoria" onchange="onCategoriaChange(this.value)">
         <option value="">Selecciona una categoría</option>
         <option value="electrodomesticos">📺 Electrodomésticos</option>
         <option value="ropa">👕 Ropa y calzado</option>
         <option value="alimentos">🍎 Alimentos</option>
         <option value="servicios">🔧 Servicios</option>
         <option value="vehiculos">🚗 Vehículos</option>
-        <option value="inmuebles">🏡 Inmuebles</option>
+        <option value="hogar">🛋️ Hogar y muebles</option>
+        <option value="accesorios">💍 Accesorios y bisutería</option>
+        <option value="casas">🏡 Casas y propiedades</option>
         <option value="salud">💊 Salud y Belleza</option>
       </select>
+    </div>
+    <!-- BLOQUE CASAS — aparece cuando eligen Casas y propiedades -->
+    <div id="bloque-casas" style="display:none;background:#fff5f5;border:1.5px solid var(--accent);border-radius:12px;padding:16px;margin-bottom:14px;">
+      <div style="font-size:1.5rem;margin-bottom:8px;">🏡</div>
+      <div style="font-weight:700;font-size:0.95rem;margin-bottom:6px;">Las propiedades las publicamos nosotros</div>
+      <div style="font-size:0.82rem;color:var(--text2);line-height:1.5;margin-bottom:14px;">Para garantizar la calidad, las casas y propiedades las gestionamos directamente con varias fotos y descripción completa. Escríbenos y lo publicamos gratis.</div>
+      <a href="https://wa.me/34637154087?text=Hola,%20quiero%20publicar%20una%20propiedad%20en%20TuVenta" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#25D366;color:white;border-radius:10px;padding:12px;font-family:var(--font);font-weight:700;font-size:0.9rem;text-decoration:none;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Escribir por WhatsApp
+      </a>
     </div>
     <div class="form-group"><label class="form-label">Título</label><input class="form-input" type="text" id="pub-titulo" placeholder=""></div>
     <div class="form-group"><label class="form-label">Descripción</label><textarea class="form-input" id="pub-desc" rows="3" placeholder="Describe lo que ofreces..." style="resize:none;"></textarea></div>
@@ -467,7 +481,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <option value="alimentos">🍎 Alimentos</option>
         <option value="servicios">🔧 Servicios</option>
         <option value="vehiculos">🚗 Vehículos</option>
-        <option value="inmuebles">🏡 Inmuebles</option>
+        <option value="hogar">🛋️ Hogar y muebles</option>
+        <option value="accesorios">💍 Accesorios y bisutería</option>
+        <option value="casas">🏡 Casas y propiedades</option>
         <option value="mipyme">🏪 MIPYME / Negocio</option>
         <option value="salud">💊 Salud y Belleza</option>
       </select>
@@ -549,7 +565,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <option value="alimentos" selected>🍎 Alimentos</option>
         <option value="servicios">🔧 Servicios</option>
         <option value="vehiculos">🚗 Vehículos</option>
-        <option value="inmuebles">🏡 Inmuebles</option>
+        <option value="hogar">🛋️ Hogar y muebles</option>
+        <option value="accesorios">💍 Accesorios y bisutería</option>
+        <option value="casas">🏡 Casas y propiedades</option>
         <option value="salud">💊 Salud y Belleza</option>
       </select>
     </div>
@@ -651,8 +669,8 @@ const sb = supabase.createClient(SURL, SKEY, {
   }
 });
 
-const EMOJIS = {electrodomesticos:'📺',ropa:'👕',alimentos:'🍎',servicios:'🔧',vehiculos:'🚗',inmuebles:'🏡',mipyme:'🏪',salud:'💊'};
-const CATS = {electrodomesticos:'Electrodomésticos',ropa:'Ropa y calzado',alimentos:'Alimentos',servicios:'Servicios',vehiculos:'Vehículos',inmuebles:'Inmuebles',mipyme:'MIPYMEs',salud:'Salud y Belleza'};
+const EMOJIS = {electrodomesticos:'📺',ropa:'👕',alimentos:'🍎',servicios:'🔧',vehiculos:'🚗',casas:'🏡',hogar:'🛋️',accesorios:'💍',mipyme:'🏪',salud:'💊'};
+const CATS = {electrodomesticos:'Electrodomésticos',ropa:'Ropa y calzado',alimentos:'Alimentos',servicios:'Servicios',vehiculos:'Vehículos',casas:'Casas y propiedades',hogar:'Hogar y muebles',accesorios:'Accesorios y bisutería',mipyme:'MIPYMEs',salud:'Salud y Belleza'};
 
 let currentUser = null;
 let currentPerfil = null;
@@ -728,6 +746,14 @@ function cerrarPublicar(){
   fotoFile = null;
   monedaPub = 'CUP';
   tipoPub = 'producto';
+  // Resetear estado de categoría casas
+  const bc = document.getElementById('bloque-casas');
+  if(bc) bc.style.display='none';
+  ['pub-titulo','pub-desc','pub-ciudad'].forEach(id=>{ const el=document.getElementById(id); if(el&&el.closest('.form-group')) el.closest('.form-group').style.display='block'; });
+  const btnSubmit = document.getElementById('btn-pub-submit');
+  if(btnSubmit) btnSubmit.style.display='block';
+  const labelFoto = document.getElementById('pub-foto-label');
+  if(labelFoto&&labelFoto.closest('.form-group')) labelFoto.closest('.form-group').style.display='block';
   const sel = document.getElementById('pub-moneda');
   if(sel) sel.value = 'CUP';
   document.getElementById('foto-preview').style.display='none';
@@ -1180,6 +1206,42 @@ async function openPublicar(){
   document.getElementById('tipo-producto').classList.remove('selected');
   document.getElementById('tipo-servicio').classList.remove('selected');
   abrirOverlay('overlay-tipo');
+}
+
+function onCategoriaChange(val){
+  const bloqueCasas = document.getElementById('bloque-casas');
+  const camposNormales = ['pub-titulo','pub-desc','bloque-precio-producto','bloque-precio-servicio','pub-ciudad'];
+  const labelFoto = document.getElementById('pub-foto-label');
+  const fotoArea = document.getElementById('foto-upload-area');
+  const btnSubmit = document.getElementById('btn-pub-submit');
+  if(val === 'casas'){
+    bloqueCasas.style.display = 'block';
+    // Ocultar campos del formulario normal
+    ['pub-titulo','pub-desc','pub-ciudad'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.closest('.form-group').style.display='none';
+    });
+    document.getElementById('bloque-precio-producto').style.display='none';
+    document.getElementById('bloque-precio-servicio').style.display='none';
+    if(labelFoto) labelFoto.closest('.form-group').style.display='none';
+    if(btnSubmit) btnSubmit.style.display='none';
+  } else {
+    bloqueCasas.style.display = 'none';
+    ['pub-titulo','pub-desc','pub-ciudad'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.closest('.form-group').style.display='block';
+    });
+    if(labelFoto) labelFoto.closest('.form-group').style.display='block';
+    if(btnSubmit) btnSubmit.style.display='block';
+    // Restaurar precio según tipo
+    if(tipoPub==='servicio'){
+      document.getElementById('bloque-precio-producto').style.display='none';
+      document.getElementById('bloque-precio-servicio').style.display='block';
+    } else {
+      document.getElementById('bloque-precio-producto').style.display='block';
+      document.getElementById('bloque-precio-servicio').style.display='none';
+    }
+  }
 }
 
 function seleccionarTipo(tipo){
