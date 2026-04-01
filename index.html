@@ -1486,27 +1486,49 @@ async function init(){
 
 init();
 
-// Service Worker inline
+// Service Worker — nunca cachea HTML ni Supabase, solo assets estáticos como fallback
 if('serviceWorker' in navigator){
   window.addEventListener('load', async () => {
     try {
       const swCode = `
-const CACHE = 'tuventa-v1';
-self.addEventListener('install', e => { self.skipWaiting(); });
-self.addEventListener('activate', e => { self.clients.claim(); });
+const CACHE = 'tuventa-v3';
+const ASSETS = ['/icon-192.png','/manifest.json'];
+self.addEventListener('install', e => {
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(()=>{})));
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(
+      keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+    ))
+  );
+  self.clients.claim();
+});
 self.addEventListener('fetch', e => {
   if(e.request.method !== 'GET') return;
+  // Nunca interceptar HTML — siempre red para tener versión fresca
+  if(e.request.headers.get('accept')?.includes('text/html')) return;
+  // Nunca interceptar Supabase ni APIs externas
   if(e.request.url.includes('supabase.co')) return;
   if(e.request.url.includes('googleapis.com')) return;
+  if(e.request.url.includes('jsdelivr.net')) return;
+  // Para assets estáticos: red primero, caché como fallback
   e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });`;
       const blob = new Blob([swCode], {type:'application/javascript'});
       const swUrl = URL.createObjectURL(blob);
       await navigator.serviceWorker.register(swUrl, {scope:'/'});
-      console.log('SW registrado');
-    } catch(e){ console.log('SW no disponible'); }
+    } catch(e){}
   });
 }
+
+// Recargar datos automáticamente al volver a la app (PWA en iPhone y Android)
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible'){
+    cargarAnuncios();
+  }
+});
 </script>
 <!-- OVERLAY DESCARGA APP -->
 <div class="overlay" id="overlay-descarga">
