@@ -15,6 +15,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
 <style>
 :root {
   --bg:#f7f6f2;--surface:#fff;--surface2:#f0efe9;--border:#e8e6df;
@@ -1259,7 +1260,7 @@ function seleccionarTipo(tipo){
   } else {
     document.getElementById('pub-modal-title').textContent = '📦 Publicar producto';
     document.getElementById('pub-titulo').placeholder = 'Ej: Ventilador de techo en buen estado...';
-    // Mostrar selector sin la opción de servicios
+    // Mostrar selector sin la opci��n de servicios
     catSelect.value = '';
     catSelect.parentElement.style.display = 'block';
     // Ocultar opción servicios en el selector de producto
